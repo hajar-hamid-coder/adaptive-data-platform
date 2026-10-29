@@ -1,0 +1,40 @@
+# secrets
+.env
+.env.*
+!.env.example
+secrets/
+
+# état local de Claude Code
+.claude/state/
+.claude/settings.local.json
+.claude/worktrees/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# data & artefacts
+data/
+*.duckdb
+*.parquet
+!tests/data/**/*.parquet
+graphify-out/graph.json
+graphify-out/cache/
+
+# front
+node_modules/
+frontend/dist/
+
+# os / éditeurs
+.DS_Store
+.idea/
+.vscode/
+~$*.xlsx
+.~lock.*
