@@ -38,3 +38,5 @@ frontend/dist/
 .vscode/
 ~$*.xlsx
 .~lock.*
+graphify-out/manifest.json
+graphify-out/.graphify_*

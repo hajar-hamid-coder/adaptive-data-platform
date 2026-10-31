@@ -5,3 +5,4 @@
 - 2026-10-31 — P0-02 Docker Compose MinIO+Postgres (f8aba05). Postgres sur 5433 ; image bitnamilegacy/minio (minio/minio retirée de Docker Hub).
 - 2026-10-31 — P0-03 Settings pydantic-settings + hook check-secrets (1f8ef18).
 - 2026-10-31 — P0-04 logging structlog + erreurs domaine (ffe5437).
+- 2026-10-31 — P0-05 CI GitHub Actions (2c0d950). Run Actions réel à confirmer après push.
