@@ -20,7 +20,7 @@ def list_buckets() -> set[str]:
     """GET / signé SigV4 (ListBuckets) ; renvoie les noms de buckets."""
     endpoint = os.environ.get("ADP_S3_ENDPOINT", "http://127.0.0.1:9000")
     user = os.environ.get("MINIO_ROOT_USER", "minioadmin")
-    pwd = os.environ.get("MINIO_ROOT_PASSWORD", "minioadmin")
+    pwd = os.environ.get("MINIO_ROOT_PASSWORD", "change-me-locally")
     host = endpoint.split("://", 1)[1]
     region, service = "us-east-1", "s3"
     now = dt.datetime.now(dt.UTC)

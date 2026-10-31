@@ -8,13 +8,13 @@
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 1 | P0-01 | Structure du repo & outillage Python | Haiku | — | Non fait |
-| 2 | P0-02 | Docker Compose local (MinIO, Postgres) | Sonnet | P0-01 | Non fait |
-| 3 | P0-03 | Configuration & gestion des secrets | Sonnet | P0-01 | Non fait |
-| 4 | P0-04 | Logging structuré & modèle d'erreurs commun | Sonnet | P0-01 | Non fait |
-| 5 | P0-05 | CI GitHub Actions | Sonnet | P0-01 | Non fait |
-| 6 | P0-06 | Installer graphify et cartographier le repo | Haiku | P0-01 | Non fait |
-| 7 | P0-07 | ADR d'architecture fondatrices | Opus | P0-02 | Non fait |
+| 1 | P0-01 | Structure du repo & outillage Python | Haiku | — | À valider |
+| 2 | P0-02 | Docker Compose local (MinIO, Postgres) | Sonnet | P0-01 | À valider |
+| 3 | P0-03 | Configuration & gestion des secrets | Sonnet | P0-01 | À valider |
+| 4 | P0-04 | Logging structuré & modèle d'erreurs commun | Sonnet | P0-01 | À valider |
+| 5 | P0-05 | CI GitHub Actions | Sonnet | P0-01 | À valider |
+| 6 | P0-06 | Installer graphify et cartographier le repo | Haiku | P0-01 | À valider |
+| 7 | P0-07 | ADR d'architecture fondatrices | Opus | P0-02 | À valider |
 
 ### P0-01 — Structure du repo & outillage Python
 - **Objectif** : Créer l'ossature du projet (src layout), gestion des dépendances et qualité de code.

@@ -7,3 +7,4 @@
 - 2026-10-31 — P0-04 logging structlog + erreurs domaine (ffe5437).
 - 2026-10-31 — P0-05 CI GitHub Actions (2c0d950). Run Actions réel à confirmer après push.
 - 2026-10-31 — P0-06 graphify via uv tool, mode AST local (d81f9d6). Rapport à régénérer à la validation.
+- 2026-10-31 — P0-07 6 ADR + architecture.md Mermaid (3620cb1).
