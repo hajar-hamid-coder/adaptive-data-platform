@@ -17,3 +17,7 @@ repos:
         language: system
         pass_filenames: false
         files: ^src/
+      - id: check-secrets
+        name: check secrets
+        entry: uv run python scripts/check_secrets.py
+        language: system

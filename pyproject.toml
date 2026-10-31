@@ -9,6 +9,7 @@ dependencies = [
     "duckdb",
     "openpyxl",
     "pydantic",
+    "pydantic-settings>=2.16.2",
 ]
 
 [build-system]
