@@ -1,5 +1,7 @@
 # Plateforme de Données Intelligente et Évolutive (ADP)
 
+[![CI](https://github.com/hajar-hamid-coder/adaptive-data-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/hajar-hamid-coder/adaptive-data-platform/actions/workflows/ci.yml)
+
 > De la source à la valeur : une chaîne de traitement intelligente, fiable et évolutive.
 
 Plateforme de données *medallion* (Bronze → Silver → Gold) qui détecte les changements de schéma, propose et applique des mappings (règles + LLM/RAG avec validation humaine), isole les données douteuses en quarantaine, observe ses propres pipelines et s'optimise selon l'usage.
