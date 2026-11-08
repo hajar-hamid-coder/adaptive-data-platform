@@ -10,9 +10,11 @@ dependencies = [
     "duckdb",
     "httpx>=0.28.1",
     "openpyxl",
+    "psycopg[binary]>=3.3.8",
     "pydantic",
     "pydantic-settings>=2.16.2",
     "pyyaml>=6.0.3",
+    "sqlalchemy>=2.1.8",
     "structlog>=26.1.0",
     "tenacity>=9.2.1",
 ]

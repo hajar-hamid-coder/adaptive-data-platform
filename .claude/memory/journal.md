@@ -11,3 +11,4 @@
 - 2026-11-08 — Bilan P0 : 7/7 tâches validées, 19 tests verts, 6 ADR, graphe de 14 communautés. Ouvert : H-14 image MinIO, H-15 graphify install, run CI GitHub à confirmer.
 - 2026-11-08 — P1-01 SourceSpec + registry YAML (9752028).
 - 2026-11-08 — P1-02 connecteur fichiers RawTable sans pandas (f1103ad). .gitignore : !tests/data/.
+- 2026-11-08 — P1-03 connecteur REST httpx+tenacity, Retry-After en secondes (fa20c06).
