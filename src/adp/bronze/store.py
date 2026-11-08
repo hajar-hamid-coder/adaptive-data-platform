@@ -12,6 +12,7 @@ import urllib.request
 import uuid
 from pathlib import Path
 from typing import Protocol
+from xml.etree import ElementTree
 
 from adp.config import get_settings
 from adp.errors import IngestionError
@@ -27,6 +28,15 @@ class ObjectStore(Protocol):
     def exists(self, key: str) -> bool: ...
 
     def get(self, key: str) -> bytes: ...
+
+    def list(self, prefix: str = "") -> list[str]:
+        """Sorted keys starting with prefix."""
+        ...
+
+    def move(self, src: str, dst: str) -> None:
+        """Archive move: copy then delete src. Never overwrites: if dst already exists with
+        identical content, src is simply removed; different content raises IngestionError."""
+        ...
 
 
 class LocalStore:
@@ -54,6 +64,21 @@ class LocalStore:
     def get(self, key: str) -> bytes:
         return (self.root / key).read_bytes()
 
+    def list(self, prefix: str = "") -> list[str]:
+        keys = (p.relative_to(self.root).as_posix() for p in self.root.rglob("*") if p.is_file())
+        return sorted(k for k in keys if k.startswith(prefix) and k.rsplit("/", 1)[-1][0] != ".")
+
+    def move(self, src: str, dst: str) -> None:
+        s, d = self.root / src, self.root / dst
+        d.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            os.link(s, d)  # atomic, fails if dst exists
+        except FileExistsError:
+            if s.read_bytes() != d.read_bytes():
+                msg = f"move {src} -> {dst}: destination exists with other content"
+                raise IngestionError(msg) from None
+        s.unlink()
+
 
 def _sign(key: bytes, msg: str) -> bytes:
     return hmac.new(key, msg.encode(), hashlib.sha256).digest()
@@ -74,10 +99,15 @@ class S3Store:
         self.region = region
 
     def _request(
-        self, method: str, key: str, data: bytes = b"", extra: dict[str, str] | None = None
-    ) -> tuple[int, bytes]:
+        self, method: str, key: str, data: bytes = b"", extra: dict[str, str] | None = None,
+        query: dict[str, str] | None = None,
+    ) -> tuple[int, bytes]:  # fmt: skip
         host = self.endpoint.split("://", 1)[1]
         path = "/" + urllib.parse.quote(f"{self.bucket}/{key}")
+        cq = "&".join(
+            f"{urllib.parse.quote(k, safe='')}={urllib.parse.quote(v, safe='')}"
+            for k, v in sorted((query or {}).items())
+        )
         now = dt.datetime.now(dt.UTC)
         amz, day = now.strftime("%Y%m%dT%H%M%SZ"), now.strftime("%Y%m%d")
         payload = hashlib.sha256(data).hexdigest()
@@ -86,7 +116,7 @@ class S3Store:
         names = sorted(headers)
         canon_h = "".join(f"{n}:{headers[n]}\n" for n in names)
         signed = ";".join(names)
-        canonical = f"{method}\n{path}\n\n{canon_h}\n{signed}\n{payload}"
+        canonical = f"{method}\n{path}\n{cq}\n{canon_h}\n{signed}\n{payload}"
         scope = f"{day}/{self.region}/s3/aws4_request"
         digest = hashlib.sha256(canonical.encode()).hexdigest()
         to_sign = f"AWS4-HMAC-SHA256\n{amz}\n{scope}\n{digest}"
@@ -99,9 +129,8 @@ class S3Store:
             f"SignedHeaders={signed}, Signature={sig}"
         )
         headers.pop("host")
-        req = urllib.request.Request(
-            self.endpoint + path, data=data or None, method=method, headers=headers
-        )
+        url = self.endpoint + path + (f"?{cq}" if cq else "")
+        req = urllib.request.Request(url, data=data or None, method=method, headers=headers)
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 return resp.status, resp.read()
@@ -132,6 +161,31 @@ class S3Store:
             raise IngestionError(f"S3 GET {key} failed with HTTP {status}")
         return body
 
+    def list(self, prefix: str = "") -> list[str]:
+        keys: list[str] = []
+        token = ""
+        while True:
+            q = {"list-type": "2", "prefix": prefix}
+            if token:
+                q["continuation-token"] = token
+            status, body = self._request("GET", "", query=q)
+            if status != 200:
+                raise IngestionError(f"S3 LIST {prefix} failed with HTTP {status}")
+            root = ElementTree.fromstring(body)
+            ns = root.tag.partition("}")[0] + "}" if root.tag.startswith("{") else ""
+            keys += [e.text or "" for e in root.iter(f"{ns}Key")]
+            if (root.findtext(f"{ns}IsTruncated") or "").lower() != "true":
+                return sorted(keys)
+            token = root.findtext(f"{ns}NextContinuationToken") or ""
+
+    def move(self, src: str, dst: str) -> None:
+        data = self.get(src)
+        if not self.put_if_absent(dst, data) and self.get(dst) != data:
+            raise IngestionError(f"move {src} -> {dst}: destination exists with other content")
+        self.delete(src)  # only after dst is confirmed to hold the same bytes
+
     def delete(self, key: str) -> None:
-        """Test cleanup helper (Bronze data itself is never deleted by the platform)."""
-        self._request("DELETE", key)
+        """Remove an object (used after a verified archive copy, and for test cleanup)."""
+        status, _ = self._request("DELETE", key)
+        if status not in (200, 204, 404):
+            raise IngestionError(f"S3 DELETE {key} failed with HTTP {status}")

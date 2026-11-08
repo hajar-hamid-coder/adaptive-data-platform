@@ -15,3 +15,4 @@
 - 2026-11-08 — P1-04 connecteur SQL incrémental + WatermarkStore, SQLite/Postgres (ce64f40).
 - 2026-11-08 — P1-05 Bronze writer (LocalStore/S3Store SigV4 stdlib, put_if_absent, manifeste après parquet) (480ab40).
 - 2026-11-08 — P1-06 dead-letter jsonl idempotent, read_file_with_rejects, seuil 20 % (7133a9c). REST/SQL/xlsx non branchés.
+- 2026-11-08 — P1-07 simulateur de dérive v1→v3 (add/rename/type/drop), stdlib, déterministe (f0f5a4f).
