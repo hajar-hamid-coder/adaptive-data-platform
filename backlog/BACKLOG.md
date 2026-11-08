@@ -67,19 +67,19 @@
 
 ## P1 — Ingestion & couche Bronze
 
-*Connecteurs multi-sources, écriture Bronze immuable, rejets, simulateur de dérive.* — gate utilisateur : **Non**
+*Connecteurs multi-sources, écriture Bronze immuable, rejets, simulateur de dérive.* — gate utilisateur : **Oui**
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 8 | P1-01 | Contrat de source & registry de sources | Sonnet | P0-04 | À valider |
-| 9 | P1-02 | Connecteur fichiers (CSV/Excel/JSON) | Sonnet | P1-01 | À valider |
-| 10 | P1-03 | Connecteur REST API | Sonnet | P1-01 | À valider |
-| 11 | P1-04 | Connecteur base de données (incrémental) | Sonnet | P1-01 | À valider |
-| 12 | P1-05 | Écriture Bronze immuable | Sonnet | P1-02, P0-02 | À valider |
-| 13 | P1-06 | Gestion des erreurs d'ingestion & dead-letter | Sonnet | P1-05 | À valider |
-| 14 | P1-07 | Simulateur de dérive de schéma | Sonnet | P1-02 | À valider |
-| 15 | P1-08 | Archivage & cycle de vie Bronze | Sonnet | P1-05 | À valider |
-| 16 | P1-09 | Assets & sensors Dagster d'ingestion | Sonnet | P1-05, P1-06 | À valider |
+| 8 | P1-01 | Contrat de source & registry de sources | Sonnet | P0-04 | Validé |
+| 9 | P1-02 | Connecteur fichiers (CSV/Excel/JSON) | Sonnet | P1-01 | Validé |
+| 10 | P1-03 | Connecteur REST API | Sonnet | P1-01 | Validé |
+| 11 | P1-04 | Connecteur base de données (incrémental) | Sonnet | P1-01 | Validé |
+| 12 | P1-05 | Écriture Bronze immuable | Sonnet | P1-02, P0-02 | Validé |
+| 13 | P1-06 | Gestion des erreurs d'ingestion & dead-letter | Sonnet | P1-05 | Validé |
+| 14 | P1-07 | Simulateur de dérive de schéma | Sonnet | P1-02 | Validé |
+| 15 | P1-08 | Archivage & cycle de vie Bronze | Sonnet | P1-05 | Validé |
+| 16 | P1-09 | Assets & sensors Dagster d'ingestion | Sonnet | P1-05, P1-06 | Validé |
 
 ### P1-01 — Contrat de source & registry de sources
 - **Objectif** : Décrire chaque source de façon déclarative.
