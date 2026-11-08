@@ -456,3 +456,20 @@ def test_record_changes_round_trip(engine: Engine) -> None:
 
 def rows_of(reg: SchemaRegistry, version: int) -> list[SchemaChange]:
     return [r.change for r in reg.changes("hcp_population", version)]
+
+
+def test_tie_is_broken_alphabetically_and_flagged() -> None:
+    """Two identical added columns compete for one dropped column: same score, alphabetical
+    winner, decision unchanged, `tie` flag on the RENAMED change."""
+    rows = [["1", "1", "1"], ["2", "2", "2"]]
+    old = profile_table(RawTable(columns=["k", "montant"], rows=[r[:2] for r in rows]))
+    new = profile_table(RawTable(columns=["k", "montant_b", "montant_a"], rows=rows))
+    d = diff_schemas(old, new)
+    tied = [c for c in d.candidates if c.old_column == "montant"]
+    assert len({c.score for c in tied}) == 1
+    (ren,) = [c for c in d.changes if c.kind is ChangeKind.RENAMED]
+    assert ren.column == "montant_a" and ren.detail["tie"] is True
+    assert ren.detail["decision"] == tied[0].decision
+    two = [r[:2] for r in rows]
+    clean = diff_schemas(old, profile_table(RawTable(columns=["k", "montant_a"], rows=two)))
+    assert "tie" not in next(c for c in clean.changes if c.kind is ChangeKind.RENAMED).detail

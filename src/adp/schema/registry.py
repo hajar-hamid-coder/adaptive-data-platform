@@ -14,6 +14,12 @@ Design decisions (ADR 0003, H-04):
 - Semver is computed once at registration against the highest version by `classify_bump`
   (minimal rule, to be refined/reused by the P2-03 diff). `schema_change` is filled by P2-03;
   `record_changes` replaces the rows of a (from, to) pair so a replay never duplicates.
+- Acceptance (P2-06 fix, revision 0002): `schema_version.accepted_at` (NULL = not accepted).
+  The acceptance decision is transactional metadata like the version itself (ADR 0003), so it
+  lives in the registry rather than in the object store. `accept` sets it once (idempotent,
+  never cleared); `baseline` is the highest accepted version: the reference the schema gate
+  diffs against. A registered but unaccepted version (blocked by the gate) stays in the
+  catalog for traceability but is never a baseline. Releasing it after human review = `accept`.
 """
 
 import json
@@ -37,6 +43,7 @@ from sqlalchemy import (
     delete,
     insert,
     select,
+    update,
 )
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
@@ -63,6 +70,7 @@ schema_version = Table(
     Column("fingerprint", String(64), nullable=False),
     Column("columns_json", Text, nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("accepted_at", DateTime(timezone=True), nullable=True),
     UniqueConstraint("source_name", "version", name="uq_schema_version_source_version"),
     UniqueConstraint("source_name", "fingerprint", name="uq_schema_version_source_fingerprint"),
 )
@@ -102,6 +110,7 @@ class SchemaVersion(BaseModel):
     fingerprint: str
     columns: tuple[SchemaColumn, ...]
     created_at: datetime
+    accepted_at: datetime | None = None
 
 
 class SchemaChange(BaseModel):
@@ -167,6 +176,7 @@ def _to_version(row: Row[Any]) -> SchemaVersion:
         fingerprint=row.fingerprint,
         columns=_load_columns(row.columns_json),
         created_at=_utc(row.created_at),
+        accepted_at=_utc(row.accepted_at) if row.accepted_at else None,
     )
 
 
@@ -252,6 +262,30 @@ class SchemaRegistry:
         t = schema_version
         stmt = select(t).where(t.c.source_name == _check_source(source_name))
         return [_to_version(r) for r in self._read(stmt.order_by(t.c.version))]
+
+    def baseline(self, source_name: str) -> SchemaVersion | None:
+        """Highest accepted version (the gate's diff reference), or None if none is accepted."""
+        accepted = [v for v in self.history(source_name) if v.accepted_at is not None]
+        return accepted[-1] if accepted else None
+
+    def accept(self, source_name: str, version: int) -> SchemaVersion:
+        """Mark a version as accepted (idempotent: the first acceptance time is kept)."""
+        t = schema_version
+        mine = (t.c.source_name == _check_source(source_name), t.c.version == version)
+        try:
+            with self._engine.begin() as conn:
+                conn.execute(
+                    update(t)
+                    .where(*mine, t.c.accepted_at.is_(None))
+                    .values(accepted_at=datetime.now(UTC))
+                )
+                row = conn.execute(select(t).where(*mine)).first()
+        except SQLAlchemyError as e:
+            raise SchemaError(f"schema registry write failed ({type(e).__name__})") from e
+        if row is None:
+            raise SchemaError(f"{source_name}: unknown version {version}")
+        log.info("schema_accepted", source_name=source_name, version=version)
+        return _to_version(row)
 
     def record_changes(
         self,

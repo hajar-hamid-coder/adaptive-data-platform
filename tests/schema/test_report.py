@@ -113,6 +113,28 @@ def test_report_v2_to_v3_needs_review(reg: SchemaRegistry, policy: EvolutionPoli
     assert "taux_activite" in render_markdown(report)
 
 
+def test_explicit_baseline_is_the_diff_reference(
+    reg: SchemaRegistry, policy: EvolutionPolicy
+) -> None:
+    """`baseline` replaces `latest` as reference; the change log stores (baseline -> new)."""
+    bus, events = make_bus()
+    run(reg, "v1", bus, policy)
+    run(reg, "v3", bus, policy, previous=drift("v1"))  # v2 in the registry, not the baseline
+    v1 = reg.get(SRC, 1)
+    report = report_evolution(
+        reg, SRC, drift("v2"), policy=policy, primary_key=PK, bus=bus,
+        previous=drift("v1"), baseline=v1,
+    )  # fmt: skip
+    assert report is not None and (report.from_version, report.to_version) == (1, 3)
+    assert {r.from_version for r in reg.changes(SRC, 3)} == {1}
+    assert events[-1].from_version == 1
+    with pytest.raises(SchemaError, match="does not match v1"):
+        report_evolution(
+            reg, SRC, drift("v2").model_copy(update={"fingerprint": "x" * 64}), policy=policy,
+            primary_key=PK, bus=bus, previous=drift("v3"), baseline=v1,
+        )  # fmt: skip
+
+
 # --- événement -------------------------------------------------------------------------------
 
 

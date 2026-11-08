@@ -17,12 +17,16 @@ Décisions de `report_evolution` :
   alimentent le score des renommages, que le registre ne stocke pas). Le profil `previous` est
   donc exigé et vérifié contre la dernière version du registre avant toute écriture ; sinon
   `SchemaError`, sans effet de bord.
+- Référence du diff (`baseline`, correctif P2-06) : par défaut `"latest"` (dernière version du
+  registre, comportement historique). Le schema gate passe explicitement la dernière version
+  ACCEPTÉE (`SchemaRegistry.baseline`), ou `None` si aucune ne l'est (rapport « version
+  initiale »). Le journal `schema_change` enregistre la paire (référence → nouvelle version).
 """
 
 import json
 from collections.abc import Collection
 from datetime import datetime
-from typing import Final
+from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -237,9 +241,11 @@ def report_evolution(
     primary_key: Collection[str],
     bus: EventBus,
     previous: SchemaFingerprint | None = None,
+    baseline: SchemaVersion | None | Literal["latest"] = "latest",
     run_id: str | None = None,
 ) -> EvolutionReport | None:
-    """Register the new schema, diff it with the latest version, record and publish once.
+    """Register the new schema, diff it with `baseline` (default: the latest version), record
+    the (baseline -> new) changes and publish once.
 
     Returns None (no write, no event) when the schema is already known. See the module
     docstring for the first-version and `previous` decisions. Raises SchemaError on a
@@ -250,7 +256,7 @@ def report_evolution(
         log.info("schema_unchanged", source_name=source_name)
         return None
 
-    latest = registry.latest(source_name)
+    latest = registry.latest(source_name) if baseline == "latest" else baseline
     if latest is None:
         impact = DiffImpact(
             classified=(),

@@ -32,6 +32,11 @@ Algorithm
    is deliberate: deterministic, explainable, and the scores of competing pairs are rarely
    close enough for the optimum to differ. decision = auto (>= auto_threshold), review, or
    rejected (then reported as REMOVED + ADDED).
+   Ties: two candidates with the SAME score competing for the same old or new column are
+   broken by alphabetical order (old name, then new name): deterministic but arbitrary. The
+   scores and the decision are unchanged by the tie-break, so a tied pair below
+   auto_threshold stays in `review`. The RENAMED change then carries `detail["tie"] = True`
+   (key absent otherwise) so the review UI can show that another pairing scored the same.
 4. Each paired column (same name or renamed) is compared: TYPE_CHANGED (type differs, format
    hints in detail), else FORMAT_CHANGED (format_hint differs: `1 234` vs `1234` is the same
    integer type but a different raw format to clean), and NULLABILITY_CHANGED. REORDERED is
@@ -382,6 +387,12 @@ def diff_schemas(
                       "decision": c.decision,
                       "components": {"name_sim": c.name_sim, "type_sim": c.type_sim,
                                      "dist_sim": c.dist_sim}}  # fmt: skip
+            if any(
+                o is not c and o.decision != "rejected" and o.score == c.score
+                and (o.old_column == c.old_column or o.new_column == c.new_column)
+                for o in candidates
+            ):  # fmt: skip
+                detail["tie"] = True
             changes.append(ColumnChange(kind=ChangeKind.RENAMED, column=c.new_column,
                                         old_column=c.old_column, detail=detail))  # fmt: skip
     for n in dropped:

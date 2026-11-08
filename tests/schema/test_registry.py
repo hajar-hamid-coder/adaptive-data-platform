@@ -184,6 +184,24 @@ def test_record_changes_unknown_version(reg: SchemaRegistry) -> None:
 # --- classify_bump (pure) -------------------------------------------------------------------
 
 
+def test_accept_and_baseline(reg: SchemaRegistry) -> None:
+    v1 = reg.register("hcp", fp(["a"]))
+    assert v1.accepted_at is None and reg.baseline("hcp") is None
+    a1 = reg.accept("hcp", 1)
+    assert a1.accepted_at is not None and reg.baseline("hcp") == a1
+    assert reg.accept("hcp", 1).accepted_at == a1.accepted_at  # idempotent, time kept
+    reg.register("hcp", fp(["a", "b"]))  # registered, not accepted
+    assert reg.latest("hcp").version == 2 and reg.baseline("hcp").version == 1  # type: ignore[union-attr]
+    reg.accept("hcp", 2)
+    assert reg.baseline("hcp").version == 2  # type: ignore[union-attr]
+    assert reg.baseline("other") is None
+
+
+def test_accept_unknown_version(reg: SchemaRegistry) -> None:
+    with pytest.raises(SchemaError, match="unknown version 3"):
+        reg.accept("hcp", 3)
+
+
 @pytest.mark.parametrize(
     ("prev", "new", "bump"),
     [

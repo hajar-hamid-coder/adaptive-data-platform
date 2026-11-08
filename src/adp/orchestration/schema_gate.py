@@ -6,15 +6,22 @@ Decisions:
   stop the batch for that schema: a batch waiting for human review must not feed Silver.
 - Bronze is immutable (ADR 0001): the gate never writes to or deletes from Bronze. It only
   stops what follows.
-- The new schema is registered (and its report written) even when blocked: the registry is a
-  catalog of seen schemas, so the event and the evidence exist. Replaying a blocked batch stays
-  blocked (the decision is re-derived from the change log stored in the registry); an earlier,
-  compatible schema (e.g. back to v1) passes. Releasing a blocked version after review is the
-  job of a later task.
-- First version of a source, or a schema already known without incompatible changes: passed.
+- Baseline (fix after the P2 review): every batch is diffed against the BASELINE, the highest
+  ACCEPTED version of the registry (`SchemaRegistry.baseline`), never against `latest`.
+  Otherwise a blocked v3 would become the reference and a v4 = v3 + one nullable column would
+  look COMPATIBLE and reach Silver although v3 was never approved.
+- Acceptance: the first version of a source is accepted; a version that passes (AUTO_APPLY)
+  is accepted and becomes the baseline. A blocked version is registered (catalog, event,
+  report: traceability) but NOT accepted. Releasing it after human review (P3+) is
+  `SchemaRegistry.accept(source, version)`; from then on it passes and becomes the baseline.
+- Known schema: accepted -> passed, no event, no new version (e.g. back to v1). Not accepted ->
+  the decision is re-derived from its change log (same cause on replay). Fail closed: a missing
+  change log or an `action` missing/unknown in it raises SchemaError (the asset then fails).
+  Exception: when no version of the source is accepted yet (crash right after the first
+  registration), the batch is treated as a first version and accepted.
 - State kept next to Bronze in the object store under `_schema/<source>/`: the report
   `v<N>.report.md` and the profile `<fingerprint>.profile.json` of every schema seen (the
-  registry stores no statistics, but `report_evolution` needs the PREVIOUS profile for the
+  registry stores no statistics, but `report_evolution` needs the BASELINE profile for the
   rename score). Both are written once (put_if_absent). Profiles are stored without `examples`,
   so no raw value is persisted; reports, reasons and logs hold names, rule ids and static
   reasons only.
@@ -54,7 +61,7 @@ from adp.logging import bind_run_id, get_logger
 from adp.schema.events import EventBus
 from adp.schema.policy import ChangeImpact, EvolutionAction, EvolutionPolicy, load_policy
 from adp.schema.profile import SchemaFingerprint, profile_table
-from adp.schema.registry import SchemaRegistry, metadata
+from adp.schema.registry import SchemaRegistry, SchemaVersion, metadata
 from adp.schema.report import render_markdown, report_evolution
 from adp.sources.spec import SourceSpec
 
@@ -125,6 +132,37 @@ def _load_profile(store: ObjectStore, source: str, fingerprint: str) -> SchemaFi
     return SchemaFingerprint.model_validate_json(store.get(key)) if store.exists(key) else None
 
 
+# (kind, column, rule_id, action, reason) of one change leading to the matched version
+_Found = tuple[str, str | None, str, EvolutionAction, str | None]
+
+
+def _known(
+    registry: SchemaRegistry, source_name: str, fp: SchemaFingerprint
+) -> SchemaVersion | None:
+    return next((v for v in registry.history(source_name) if v.fingerprint == fp.fingerprint), None)
+
+
+def _found_in_log(registry: SchemaRegistry, source_name: str, version: int) -> list[_Found]:
+    """Decision of a known, unaccepted version from its change log; fail closed (SchemaError)."""
+    rows = registry.changes(source_name, version)
+    if not rows:
+        raise SchemaError(
+            f"{source_name}: v{version} is not accepted and has no change log; review required"
+        )
+    found: list[_Found] = []
+    for r in rows:
+        try:
+            action = EvolutionAction(str(r.change.detail.get("action")))
+        except ValueError:
+            raise SchemaError(
+                f"{source_name}: v{version} change log has no valid action "
+                f"({r.change.change_type} {r.change.column_name or '-'}); review required"
+            ) from None
+        rule = str(r.change.detail.get("rule_id", "-"))
+        found.append((r.change.change_type, r.change.column_name, rule, action, None))
+    return found
+
+
 def run_schema_gate(
     fingerprint: SchemaFingerprint,
     *,
@@ -138,30 +176,30 @@ def run_schema_gate(
 ) -> GateResult:
     """Register/diff/classify the batch schema and decide: passed or blocked (pure of Dagster)."""
     _save_profile(store, source_name, fingerprint)
-    latest = registry.latest(source_name)
-    previous = _load_profile(store, source_name, latest.fingerprint) if latest else None
-    report = report_evolution(
-        registry, source_name, fingerprint, policy=policy, primary_key=primary_key,
-        bus=bus, previous=previous, run_id=run_id,
-    )  # fmt: skip
-    # (kind, column, rule_id, action, reason) of every change leading to the matched version
-    found: list[tuple[str, str | None, str, EvolutionAction, str | None]]
-    if report is not None:
-        version, semver = report.to_version, report.to_semver
+    baseline = registry.baseline(source_name)
+    known = _known(registry, source_name, fingerprint)
+    report = None
+    if known is None:
+        previous = _load_profile(store, source_name, baseline.fingerprint) if baseline else None
+        report = report_evolution(
+            registry, source_name, fingerprint, policy=policy, primary_key=primary_key,
+            bus=bus, previous=previous, baseline=baseline, run_id=run_id,
+        )  # fmt: skip
+        if report is None:  # registered concurrently in between
+            known = _known(registry, source_name, fingerprint)
+    found: list[_Found]
+    if report is not None:  # new schema, diffed against the baseline
+        version, semver, accepted = report.to_version, report.to_semver, False
         found = [(c.kind.value, c.column, c.rule_id, c.action, c.reason) for c in report.changes]
-        key = _report_key(source_name, version)
-        store.put_if_absent(key, render_markdown(report).encode())
-    else:  # known schema: decide again from the stored change log
-        known = next(
-            v for v in registry.history(source_name) if v.fingerprint == fingerprint.fingerprint
-        )
+        store.put_if_absent(_report_key(source_name, version), render_markdown(report).encode())
+    elif known is not None:  # known schema
         version, semver = known.version, known.semver
-        found = [
-            (r.change.change_type, r.change.column_name, str(r.change.detail.get("rule_id")),
-             EvolutionAction(r.change.detail["action"]), None)
-            for r in registry.changes(source_name, version)
-        ]  # fmt: skip
-        key = _report_key(source_name, version)
+        accepted = known.accepted_at is not None
+        skip_log = accepted or baseline is None
+        found = [] if skip_log else _found_in_log(registry, source_name, version)
+    else:
+        raise SchemaError(f"{source_name}: schema neither new nor registered")
+    key = _report_key(source_name, version)
     action = max(
         (f[3] for f in found), key=_SEVERITY.__getitem__, default=EvolutionAction.AUTO_APPLY
     )
@@ -171,6 +209,8 @@ def run_schema_gate(
         if action_ is not EvolutionAction.AUTO_APPLY
     ]
     blocked = action is not EvolutionAction.AUTO_APPLY
+    if not blocked and not accepted:
+        registry.accept(source_name, version)
     cause: Literal["blocking_change", "review_required"] | None = None
     if blocked:
         cause = "blocking_change" if action is EvolutionAction.BLOCK else "review_required"

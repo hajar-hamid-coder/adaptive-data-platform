@@ -1,5 +1,6 @@
 """Alembic migrations: no drift between the revision and the registry model; upgrade on Postgres."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -7,7 +8,7 @@ from alembic import command
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.migration import MigrationContext
-from sqlalchemy import Engine, create_engine, inspect
+from sqlalchemy import Engine, create_engine, inspect, text
 
 from adp.connectors.files import RawTable
 from adp.schema.profile import SchemaFingerprint, profile_table
@@ -20,11 +21,11 @@ def fp(columns: list[str]) -> SchemaFingerprint:
     return profile_table(RawTable(columns=columns, rows=[["1"] * len(columns)]))
 
 
-def _upgrade(url: str) -> None:
+def _upgrade(url: str, rev: str = "head") -> None:
     cfg = Config(str(ROOT / "alembic.ini"))
     cfg.set_main_option("script_location", str(ROOT / "migrations"))
     cfg.attributes["url"] = url
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, rev)
 
 
 def _assert_no_drift(engine: Engine) -> None:
@@ -41,6 +42,31 @@ def test_revision_matches_model_sqlite(tmp_path: Path) -> None:
     _assert_no_drift(eng)
     _upgrade(url)  # re-running is a no-op
     assert SchemaRegistry(eng).register("hcp", fp(["a"])).version == 1
+    eng.dispose()
+
+
+def test_0002_backfills_accepted_versions(tmp_path: Path) -> None:
+    """Pre-0002 versions are accepted unless their change log holds a review/block action."""
+    url = f"sqlite:///{tmp_path / 'b.db'}"
+    _upgrade(url, "0001")
+    eng = create_engine(url)
+    ins = (
+        "INSERT INTO schema_version (source_name, version, semver, fingerprint, columns_json,"
+        " created_at) VALUES ('s', :v, '1.0.0', :f, '[]', '2026-01-01')"
+    )
+    log = (
+        "INSERT INTO schema_change (source_name, from_version, to_version, change_type,"
+        " detail_json, created_at) VALUES ('s', :a, :b, 'added', :d, '2026-01-01')"
+    )
+    with eng.begin() as c:
+        for v in (1, 2, 3):
+            c.execute(text(ins), {"v": v, "f": f"f{v}"})
+        c.execute(text(log), {"a": 1, "b": 2, "d": json.dumps({"action": "auto_apply"})})
+        c.execute(text(log), {"a": 2, "b": 3, "d": json.dumps({"action": "queue_review"})})
+    _upgrade(url)
+    reg = SchemaRegistry(eng)
+    assert [v.accepted_at is not None for v in reg.history("s")] == [True, True, False]
+    assert reg.baseline("s").version == 2  # type: ignore[union-attr]
     eng.dispose()
 
 
