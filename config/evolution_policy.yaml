@@ -1,0 +1,101 @@
+# Politique d'évolution de schéma (P2-04) : impact de chaque changement détecté par le diff.
+# impact : compatible (application automatique) | review (à revoir, file de validation)
+#          | blocking (bloquant : lot arrêté/mis en quarantaine, jamais de modification silencieuse).
+# Pour chaque type de changement (ChangeKind), les règles sont évaluées dans l'ordre et la
+# PREMIÈRE qui correspond gagne ; `when` = conditions ET (absent = toujours vrai).
+# Conditions possibles (faits calculés par adp.schema.policy, jamais du code) :
+#   key             : la colonne (ancienne ou nouvelle) fait partie de la clé primaire de la source
+#   nullable        : add/drop = colonne nullable ; nullability_change = la colonne DEVIENT nullable
+#   column_type     : type inféré de la colonne (add/drop/format_change)
+#   rename_decision : auto | review (décision du diff, seuils H-02 dans DiffConfig, non dupliqués)
+#   type_shift      : widening | narrowing | stringify | incompatible (matrice documentée dans le module)
+# Tout ChangeKind doit avoir au moins une règle (sinon refus au chargement) ; si aucune règle
+# ne correspond, `default` s'applique (review ou blocking uniquement).
+default:
+  impact: review
+  reason: "Cas non couvert par la politique : validation humaine."
+
+rules:
+  add_column:
+    - id: add_key_column
+      when: {key: true}
+      impact: blocking
+      reason: "Nouvelle colonne déclarée dans la clé primaire : le grain de la table change."
+    - id: add_column
+      impact: compatible
+      reason: "Ajout de colonne : information en plus, l'historique reçoit des valeurs nulles."
+
+  drop_column:
+    - id: drop_key_column
+      when: {key: true}
+      impact: blocking
+      reason: "Colonne de la clé primaire supprimée : les lignes ne sont plus identifiables."
+    - id: drop_empty_column
+      when: {column_type: empty}
+      impact: compatible
+      reason: "Colonne entièrement vide supprimée : aucune information perdue."
+    - id: drop_column
+      impact: review
+      reason: "Suppression de colonne : perte d'information potentielle pour les usages aval."
+
+  rename_column:
+    - id: rename_key_auto
+      when: {key: true, rename_decision: auto}
+      impact: review
+      reason: "Renommage probable d'une colonne de clé : validation humaine malgré un score élevé."
+    - id: rename_key_column
+      when: {key: true}
+      impact: blocking
+      reason: "Renommage incertain d'une colonne de clé : risque de perte d'identité des lignes."
+    - id: rename_auto
+      when: {rename_decision: auto}
+      impact: compatible
+      reason: "Renommage au-dessus du seuil d'application automatique : mapping appliqué."
+    - id: rename_column
+      impact: review
+      reason: "Renommage probable sous le seuil automatique : validation humaine du mapping."
+
+  type_change:
+    - id: type_change_key
+      when: {key: true}
+      impact: blocking
+      reason: "Changement de type sur une colonne de clé : jointures et unicité compromises."
+    - id: type_widening
+      when: {type_shift: widening}
+      impact: compatible
+      reason: "Élargissement de type sans perte : les valeurs historiques restent représentables."
+    - id: type_narrowing
+      when: {type_shift: narrowing}
+      impact: review
+      reason: "Rétrécissement de type : perte de précision ou valeurs historiques non convertibles."
+    - id: type_stringify
+      when: {type_shift: stringify}
+      impact: review
+      reason: "Passage en texte : sans perte textuelle mais calculs numériques/temporels cassés."
+    - id: type_incompatible
+      when: {type_shift: incompatible}
+      impact: blocking
+      reason: "Types incompatibles : aucune conversion déterministe, le chargement corromprait la colonne."
+
+  format_change:
+    - id: format_change
+      impact: review
+      reason: "Nouveau format brut : la règle de normalisation doit être validée une fois."
+
+  nullability_change:
+    - id: key_becomes_nullable
+      when: {key: true, nullable: true}
+      impact: blocking
+      reason: "Valeurs nulles dans la clé primaire : lignes non identifiables."
+    - id: becomes_nullable
+      when: {nullable: true}
+      impact: compatible
+      reason: "La colonne admet désormais des valeurs nulles : schéma inchangé, suivi par la qualité."
+    - id: becomes_not_nullable
+      impact: compatible
+      reason: "La colonne n'a plus de valeurs nulles : contrainte plus forte, sans risque."
+
+  reorder:
+    - id: reorder
+      impact: compatible
+      reason: "Ordre des colonnes modifié : informationnel, la lecture se fait par nom."

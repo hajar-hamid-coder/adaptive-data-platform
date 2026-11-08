@@ -22,3 +22,4 @@
 - 2026-11-08 — Bilan P1 validé : 9/9 tâches, 116 tests (12 slow), graphe 25 communautés. Dette : H-17 partitions, H-18 REST/SQL/xlsx hors dead-letter et Dagster, H-14 image MinIO, H-01/H-08 ouvertes.
 - 2026-11-08 — P2-01 profilage + empreinte structurelle sha256 (nom,type,nullable), formats FR/EN, jj/mm par défaut (5d69366).
 - 2026-11-08 — P2-02 SchemaRegistry (version=empreinte structurelle, semver classify_bump, retour à v1 = version existante), Alembic 0001 (34c1bdd).
+- 2026-11-08 — P2-03 diff de schémas : score renommage 0.7 nom/0.1 type/0.2 distribution, seuils 0.60/0.90 (H-02), format_change distinct de type_change (fd6ed25).
