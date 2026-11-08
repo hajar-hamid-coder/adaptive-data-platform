@@ -1,0 +1,15 @@
+{
+  "changes_from_previous": [
+    {
+      "column": "taux_activite",
+      "op": "add_column"
+    },
+    {
+      "from": "population",
+      "op": "rename_column",
+      "to": "population_totale"
+    }
+  ],
+  "file": "population.csv",
+  "version": "v2"
+}

@@ -14,3 +14,4 @@
 - 2026-11-08 — P1-03 connecteur REST httpx+tenacity, Retry-After en secondes (fa20c06).
 - 2026-11-08 — P1-04 connecteur SQL incrémental + WatermarkStore, SQLite/Postgres (ce64f40).
 - 2026-11-08 — P1-05 Bronze writer (LocalStore/S3Store SigV4 stdlib, put_if_absent, manifeste après parquet) (480ab40).
+- 2026-11-08 — P1-06 dead-letter jsonl idempotent, read_file_with_rejects, seuil 20 % (7133a9c). REST/SQL/xlsx non branchés.
