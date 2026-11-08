@@ -33,6 +33,7 @@ packages = ["src/adp"]
 
 [dependency-groups]
 dev = [
+    "hypothesis>=6.170.15",
     "mypy",
     "pre-commit",
     "pytest",

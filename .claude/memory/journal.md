@@ -25,3 +25,4 @@
 - 2026-11-08 — P2-03 diff de schémas : score renommage 0.7 nom/0.1 type/0.2 distribution, seuils 0.60/0.90 (H-02), format_change distinct de type_change (fd6ed25).
 - 2026-11-08 — P2-04 politique d'évolution YAML (règles ordonnées par ChangeKind, totale, rule_id audit, sévérité max) (ab18a12). Hypothèses H-19 règles de sévérité.
 - 2026-11-08 — P2-05 rapport FR Markdown/JSON + EventBus synchrone, 1 événement par changement, rejeu sans ré-émission (e7b28f0). report_evolution reçoit le profil précédent car le registre ne stocke pas les stats.
+- 2026-11-08 — P2-06 schema_check_<source> Dagster : seul AUTO_APPLY passe, REVIEW et BLOCK lèvent Failure (blocked, cause), schéma bloqué quand même enregistré, Bronze intact (5505995).
