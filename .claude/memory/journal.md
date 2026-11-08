@@ -12,3 +12,4 @@
 - 2026-11-08 — P1-01 SourceSpec + registry YAML (9752028).
 - 2026-11-08 — P1-02 connecteur fichiers RawTable sans pandas (f1103ad). .gitignore : !tests/data/.
 - 2026-11-08 — P1-03 connecteur REST httpx+tenacity, Retry-After en secondes (fa20c06).
+- 2026-11-08 — P1-04 connecteur SQL incrémental + WatermarkStore, SQLite/Postgres (ce64f40).
