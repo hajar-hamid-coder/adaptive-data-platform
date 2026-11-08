@@ -20,3 +20,4 @@
 - 2026-11-08 — P1-09 assets/sensor Dagster 1.13, store local|s3 par env, concurrence 1, sans partition (7d57823).
 - 2026-11-08 — Bilan P1 : 9/9 tâches à valider, 116 tests verts (12 slow MinIO/Postgres). Dette : H-17 partitions, REST/SQL/xlsx hors dead-letter et Dagster (H-18), sensor non testé avec démon.
 - 2026-11-08 — Bilan P1 validé : 9/9 tâches, 116 tests (12 slow), graphe 25 communautés. Dette : H-17 partitions, H-18 REST/SQL/xlsx hors dead-letter et Dagster, H-14 image MinIO, H-01/H-08 ouvertes.
+- 2026-11-08 — P2-01 profilage + empreinte structurelle sha256 (nom,type,nullable), formats FR/EN, jj/mm par défaut (5d69366).
