@@ -13,3 +13,4 @@
 - 2026-11-08 — P1-02 connecteur fichiers RawTable sans pandas (f1103ad). .gitignore : !tests/data/.
 - 2026-11-08 — P1-03 connecteur REST httpx+tenacity, Retry-After en secondes (fa20c06).
 - 2026-11-08 — P1-04 connecteur SQL incrémental + WatermarkStore, SQLite/Postgres (ce64f40).
+- 2026-11-08 — P1-05 Bronze writer (LocalStore/S3Store SigV4 stdlib, put_if_absent, manifeste après parquet) (480ab40).

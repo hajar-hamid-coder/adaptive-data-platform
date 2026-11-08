@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -35,6 +36,15 @@ class RawTable:
     columns: list[str]
     rows: list[list[str | None]]
     meta: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class BadRow:
+    """A record that could not be turned into a row (raw text kept verbatim)."""
+
+    line_number: int
+    raw: str
+    reason: str  # wrong_field_count | invalid_json | not_an_object
 
 
 def _str(v: Any) -> str | None:
@@ -150,3 +160,76 @@ def read_file(path: Path, fmt: str | None = None, sheet: str | None = None) -> R
     if fmt == "json":
         return _read_json(path)
     return _read_xlsx(path, sheet)
+
+
+def _csv_with_rejects(path: Path) -> tuple[RawTable, list[BadRow]]:
+    text, enc = _decode(path, _read_bytes(path))
+    if not text.strip():
+        raise IngestionError(f"{path}: empty file")
+    try:
+        delim = csv.Sniffer().sniff(text[:8192], delimiters=_DELIMS).delimiter
+    except csv.Error:
+        delim = ","
+    lines = re.split(r"\r\n|\r|\n", text)
+    reader = csv.reader(io.StringIO(text, newline=""), delimiter=delim)
+    header: list[str] | None = None
+    rows: list[list[str | None]] = []
+    bad: list[BadRow] = []
+    prev = 0
+    for rec in reader:
+        start, prev = prev + 1, reader.line_num
+        if not rec:
+            continue
+        if header is None:
+            header = rec
+        elif len(rec) != len(header):
+            bad.append(BadRow(start, "\n".join(lines[start - 1 : prev]), "wrong_field_count"))
+        else:
+            rows.append([_str(c) for c in rec])
+    assert header is not None
+    meta = {"encoding": enc, "delimiter": delim, "row_count": len(rows),
+            "records_read": len(rows) + len(bad)}  # fmt: skip
+    return RawTable([h.strip() for h in header], rows, meta), bad
+
+
+def _json_with_rejects(path: Path) -> tuple[RawTable, list[BadRow]]:
+    text, enc = _decode(path, _read_bytes(path))
+    items: list[tuple[int, str, Any, str | None]] = []  # (line, raw, obj, error)
+    try:
+        data: Any = json.loads(text)
+        data = [data] if isinstance(data, dict) else data
+        if not isinstance(data, list):
+            raise IngestionError(f"{path}: JSON must be an array of objects or JSON lines")
+        items = [(i, json.dumps(o, ensure_ascii=False), o, None) for i, o in enumerate(data, 1)]
+    except json.JSONDecodeError:
+        for n, ln in enumerate(text.splitlines(), 1):
+            if not ln.strip():
+                continue
+            try:
+                items.append((n, ln, json.loads(ln), None))
+            except json.JSONDecodeError:
+                items.append((n, ln, None, "invalid_json"))
+    good = [o for _, _, o, e in items if e is None and isinstance(o, dict)]
+    bad = [
+        BadRow(n, raw, e or "not_an_object")
+        for n, raw, o, e in items
+        if e is not None or not isinstance(o, dict)
+    ]
+    cols = list(dict.fromkeys(k for o in good for k in o))
+    rows = [[_str(o.get(c)) for c in cols] for o in good]
+    meta = {"encoding": enc, "row_count": len(rows), "records_read": len(items)}
+    return RawTable(cols, rows, meta), bad
+
+
+def read_file_with_rejects(
+    path: Path, fmt: str | None = None, sheet: str | None = None
+) -> tuple[RawTable, list[BadRow]]:
+    """Like `read_file` but corrupted CSV rows / JSON records are returned, not repaired."""
+    path = Path(path)
+    fmt = fmt or _EXT.get(path.suffix.lower())
+    if fmt not in ("csv", "json") or not path.is_file():
+        table = read_file(path, fmt, sheet)  # xlsx, or raises the usual errors
+        return RawTable(
+            table.columns, table.rows, {**table.meta, "records_read": len(table.rows)}
+        ), []
+    return _csv_with_rejects(path) if fmt == "csv" else _json_with_rejects(path)
