@@ -28,3 +28,4 @@
 - 2026-11-08 — P2-06 schema_check_<source> Dagster : seul AUTO_APPLY passe, REVIEW et BLOCK lèvent Failure (blocked, cause), schéma bloqué quand même enregistré, Bronze intact (5505995).
 - 2026-11-08 — P2-07 10 propriétés hypothesis (500 ex., derandomize) sur diff_schemas, 0 contre-exemple (465f3bb). Dev dep : hypothesis.
 - 2026-11-08 — Revue P2 : défaut majeur corrigé (a8202c5) : le gate diffuse contre la dernière version ACCEPTÉE (schema_version.accepted_at, migration 0002, registry.accept/baseline), un dérivé d'un schéma bloqué reste bloqué. Bilan P2 : 7/7 à valider, 348 tests (14 slow). Dette : semver vs baseline (H-20), H-19 règles, H-17/H-18, SQLite dev ancienne sans accepted_at.
+- 2026-11-08 — Bilan P2 validé : 7/7 tâches, 348 tests (14 slow), graphe 58 communautés. Défaut majeur corrigé en revue (baseline = dernière version acceptée). Dette : H-19 règles de sévérité, H-20 semver vs baseline, H-17/H-18, H-14, CI GitHub non vérifiée.
