@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from adp.bronze.lifecycle import (
     load_retention,
     plan_archive,
 )
-from adp.bronze.store import LocalStore
+from adp.bronze.store import LocalStore, S3Store
 from adp.bronze.writer import write_bronze
 from adp.cli import main
 from adp.connectors.files import RawTable
@@ -178,3 +179,32 @@ def test_cli_summary_by_source(store, capsys):
                  "--store-root", str(store.root), "--today", "2026-04-01"])  # fmt: skip
     out = capsys.readouterr().out
     assert code == 0 and "crm : 1 lot(s), 2 fichier(s)" in out and "SIMULATION" in out
+
+
+@pytest.mark.slow
+def test_s3_list_and_move_on_minio():
+    store = S3Store("bronze")
+    try:
+        store.exists("probe")
+    except IngestionError as e:
+        pytest.skip(f"MinIO unreachable: {e}")
+    p = f"_test_{uuid.uuid4().hex[:8]}"
+    a, b, c = f"{p}/src/a.bin", f"{p}/dst/a.bin", f"{p}/dst/c.bin"
+    try:
+        assert store.put_if_absent(a, b"hello")
+        assert store.list(p) == [a]
+        store.move(a, b)
+        assert store.list(p) == [b] and store.get(b) == b"hello"
+        # destination existe avec un contenu différent : refus, source conservée
+        assert store.put_if_absent(a, b"other")
+        with pytest.raises(IngestionError):
+            store.move(a, b)
+        assert store.exists(a) and store.get(b) == b"hello"
+        # destination identique : seule la source est supprimée
+        assert store.put_if_absent(c, b"same")
+        assert store.put_if_absent(f"{p}/src/c.bin", b"same")
+        store.move(f"{p}/src/c.bin", c)
+        assert not store.exists(f"{p}/src/c.bin") and store.get(c) == b"same"
+    finally:
+        for k in store.list(p):
+            store.delete(k)

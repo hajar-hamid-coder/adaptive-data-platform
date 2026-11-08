@@ -71,15 +71,15 @@
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 8 | P1-01 | Contrat de source & registry de sources | Sonnet | P0-04 | Non fait |
-| 9 | P1-02 | Connecteur fichiers (CSV/Excel/JSON) | Sonnet | P1-01 | Non fait |
-| 10 | P1-03 | Connecteur REST API | Sonnet | P1-01 | Non fait |
-| 11 | P1-04 | Connecteur base de données (incrémental) | Sonnet | P1-01 | Non fait |
-| 12 | P1-05 | Écriture Bronze immuable | Sonnet | P1-02, P0-02 | Non fait |
-| 13 | P1-06 | Gestion des erreurs d'ingestion & dead-letter | Sonnet | P1-05 | Non fait |
-| 14 | P1-07 | Simulateur de dérive de schéma | Sonnet | P1-02 | Non fait |
-| 15 | P1-08 | Archivage & cycle de vie Bronze | Sonnet | P1-05 | Non fait |
-| 16 | P1-09 | Assets & sensors Dagster d'ingestion | Sonnet | P1-05, P1-06 | Non fait |
+| 8 | P1-01 | Contrat de source & registry de sources | Sonnet | P0-04 | À valider |
+| 9 | P1-02 | Connecteur fichiers (CSV/Excel/JSON) | Sonnet | P1-01 | À valider |
+| 10 | P1-03 | Connecteur REST API | Sonnet | P1-01 | À valider |
+| 11 | P1-04 | Connecteur base de données (incrémental) | Sonnet | P1-01 | À valider |
+| 12 | P1-05 | Écriture Bronze immuable | Sonnet | P1-02, P0-02 | À valider |
+| 13 | P1-06 | Gestion des erreurs d'ingestion & dead-letter | Sonnet | P1-05 | À valider |
+| 14 | P1-07 | Simulateur de dérive de schéma | Sonnet | P1-02 | À valider |
+| 15 | P1-08 | Archivage & cycle de vie Bronze | Sonnet | P1-05 | À valider |
+| 16 | P1-09 | Assets & sensors Dagster d'ingestion | Sonnet | P1-05, P1-06 | À valider |
 
 ### P1-01 — Contrat de source & registry de sources
 - **Objectif** : Décrire chaque source de façon déclarative.
