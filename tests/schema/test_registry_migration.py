@@ -10,6 +10,7 @@ from alembic.config import Config
 from alembic.migration import MigrationContext
 from sqlalchemy import Engine, create_engine, inspect, text
 
+import adp.mapping.decision  # noqa: F401 - review tables share the registry `metadata`
 from adp.connectors.files import RawTable
 from adp.schema.profile import SchemaFingerprint, profile_table
 from adp.schema.registry import SchemaRegistry, metadata
@@ -74,7 +75,10 @@ def test_0002_backfills_accepted_versions(tmp_path: Path) -> None:
 def test_upgrade_postgres(pg_engine: Engine) -> None:
     _upgrade(pg_engine.url.render_as_string(hide_password=False))
     tables = set(inspect(pg_engine).get_table_names())
-    assert tables == {"schema_version", "schema_change", "alembic_version"}
+    assert tables == {
+        "schema_version", "schema_change", "review_queue", "mapping_decision_log",
+        "alembic_version",
+    }  # fmt: skip
     _assert_no_drift(pg_engine)
     reg = SchemaRegistry(pg_engine)
     assert reg.register("hcp", fp(["a"])) == reg.register("hcp", fp(["a"]))

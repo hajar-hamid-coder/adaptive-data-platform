@@ -23,9 +23,11 @@ Design decisions (ADR 0003, H-04):
 """
 
 import json
+import os
 import re
 from collections.abc import Sequence
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -40,6 +42,7 @@ from sqlalchemy import (
     Table,
     Text,
     UniqueConstraint,
+    create_engine,
     delete,
     insert,
     select,
@@ -47,6 +50,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
+from adp.config import get_settings
 from adp.errors import SchemaError
 from adp.logging import get_logger
 from adp.schema.profile import SchemaFingerprint
@@ -57,6 +61,7 @@ Bump = Literal["major", "minor", "patch"]
 
 _SOURCE_NAME = re.compile(r"^[a-z][a-z0-9_]{0,254}$")  # same rule as SourceSpec.name
 _MAX_RETRIES = 5
+DEFAULT_REGISTRY_URL = "sqlite:///data/registry.db"
 
 metadata = MetaData()
 
@@ -133,6 +138,23 @@ class ChangeRecord(BaseModel):
     to_version: int
     change: SchemaChange
     created_at: datetime
+
+
+def make_engine(url: str | None = None) -> Engine:
+    """Metadata DB engine from `url`, else env `ADP_REGISTRY_URL`, else local SQLite.
+
+    `postgres` = metadata Postgres from Settings (tables owned by Alembic). A SQLite URL is
+    dev/test only: tables of `metadata` imported so far are created on the fly.
+    """
+    url = url or os.environ.get("ADP_REGISTRY_URL", DEFAULT_REGISTRY_URL)
+    if url == "postgres":
+        return create_engine(get_settings().postgres_url())
+    if url.startswith("sqlite:///"):
+        Path(url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
+    engine = create_engine(url)
+    if url.startswith("sqlite"):
+        metadata.create_all(engine)
+    return engine
 
 
 def classify_bump(prev: Sequence[SchemaColumn], new: Sequence[SchemaColumn]) -> Bump:

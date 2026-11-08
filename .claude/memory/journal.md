@@ -31,3 +31,4 @@
 - 2026-11-08 — Bilan P2 validé : 7/7 tâches, 348 tests (14 slow), graphe 58 communautés. Défaut majeur corrigé en revue (baseline = dernière version acceptée). Dette : H-19 règles de sévérité, H-20 semver vs baseline, H-17/H-18, H-14, CI GitHub non vérifiée.
 - 2026-11-08 — P3-01 dictionnaire sémantique 15 champs (géo, temps, indicateurs), normalize sans accents/camelCase, doublon de synonyme refusé (4156081).
 - 2026-11-08 — P3-02 mapping règles (exact 1.0, normalisé 0.98, synonyme 0.95, fuzzy rapidfuzz ratio/token_sort x0.94), 1 candidat par champ, seuil 0.60, baseline bruitée 28/30 (e2e9c81).
+- 2026-11-08 — P3-03 LLMProvider (Claude via SDK anthropic, repli local), RAG n-grammes local, garde-fou assert_no_raw_values, liste fermée par colonne, cache disque atomique, budget estimé (2ba00a3). Non testé avec vraie clé.

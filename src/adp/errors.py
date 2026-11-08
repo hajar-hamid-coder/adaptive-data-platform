@@ -36,3 +36,7 @@ class LLMError(AdpError):
         super().__init__(message)
         self.input_tokens = input_tokens
         self.output_tokens = output_tokens
+
+
+class MappingError(AdpError):
+    """Mapping decision or human review failure (messages carry no data value)."""

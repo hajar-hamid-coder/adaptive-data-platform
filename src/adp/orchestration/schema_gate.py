@@ -50,25 +50,22 @@ from dagster import (
     asset,
 )
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import Engine, create_engine
 
 from adp.bronze.store import ObjectStore
 from adp.bronze.writer import TECH_COLUMNS
-from adp.config import get_settings
 from adp.connectors.files import RawTable
 from adp.errors import SchemaError
 from adp.logging import bind_run_id, get_logger
 from adp.schema.events import EventBus
 from adp.schema.policy import ChangeImpact, EvolutionAction, EvolutionPolicy, load_policy
 from adp.schema.profile import SchemaFingerprint, profile_table
-from adp.schema.registry import SchemaRegistry, SchemaVersion, metadata
+from adp.schema.registry import SchemaRegistry, SchemaVersion, make_engine
 from adp.schema.report import render_markdown, report_evolution
 from adp.sources.spec import SourceSpec
 
 log = get_logger(__name__)
 STATE_PREFIX = "_schema"
 DEFAULT_POLICY = "config/evolution_policy.yaml"
-DEFAULT_REGISTRY_URL = "sqlite:///data/registry.db"
 _SEVERITY = {
     EvolutionAction.AUTO_APPLY: 0,
     EvolutionAction.QUEUE_REVIEW: 1,
@@ -236,17 +233,7 @@ class SchemaRegistryResource(ConfigurableResource):  # type: ignore[type-arg]
     url: str = ""
 
     def registry(self) -> SchemaRegistry:
-        url = self.url or os.environ.get("ADP_REGISTRY_URL", DEFAULT_REGISTRY_URL)
-        engine: Engine
-        if url == "postgres":
-            engine = create_engine(get_settings().postgres_url())
-        else:
-            if url.startswith("sqlite:///"):
-                Path(url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
-            engine = create_engine(url)
-            if url.startswith("sqlite"):
-                metadata.create_all(engine)
-        return SchemaRegistry(engine)
+        return SchemaRegistry(make_engine(self.url or None))
 
 
 def make_schema_check_asset(spec: SourceSpec) -> AssetsDefinition:

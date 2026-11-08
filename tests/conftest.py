@@ -1,4 +1,4 @@
-"""Shared fixtures for schema tests."""
+"""Shared fixtures (throw-away Postgres database for `slow` tests)."""
 
 import uuid
 from collections.abc import Iterator
