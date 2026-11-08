@@ -4,17 +4,17 @@
 
 ## P0 — Fondations & environnement Claude Code
 
-*Repo propre, outillage, CI, Docker local, graphify, ADR d'architecture.* — gate utilisateur : **Non**
+*Repo propre, outillage, CI, Docker local, graphify, ADR d'architecture.* — gate utilisateur : **Oui**
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 1 | P0-01 | Structure du repo & outillage Python | Haiku | — | À valider |
-| 2 | P0-02 | Docker Compose local (MinIO, Postgres) | Sonnet | P0-01 | À valider |
-| 3 | P0-03 | Configuration & gestion des secrets | Sonnet | P0-01 | À valider |
-| 4 | P0-04 | Logging structuré & modèle d'erreurs commun | Sonnet | P0-01 | À valider |
-| 5 | P0-05 | CI GitHub Actions | Sonnet | P0-01 | À valider |
-| 6 | P0-06 | Installer graphify et cartographier le repo | Haiku | P0-01 | À valider |
-| 7 | P0-07 | ADR d'architecture fondatrices | Opus | P0-02 | À valider |
+| 1 | P0-01 | Structure du repo & outillage Python | Haiku | — | Validé |
+| 2 | P0-02 | Docker Compose local (MinIO, Postgres) | Sonnet | P0-01 | Validé |
+| 3 | P0-03 | Configuration & gestion des secrets | Sonnet | P0-01 | Validé |
+| 4 | P0-04 | Logging structuré & modèle d'erreurs commun | Sonnet | P0-01 | Validé |
+| 5 | P0-05 | CI GitHub Actions | Sonnet | P0-01 | Validé |
+| 6 | P0-06 | Installer graphify et cartographier le repo | Haiku | P0-01 | Validé |
+| 7 | P0-07 | ADR d'architecture fondatrices | Opus | P0-02 | Validé |
 
 ### P0-01 — Structure du repo & outillage Python
 - **Objectif** : Créer l'ossature du projet (src layout), gestion des dépendances et qualité de code.

@@ -8,3 +8,4 @@
 - 2026-10-31 — P0-05 CI GitHub Actions (2c0d950). Run Actions réel à confirmer après push.
 - 2026-10-31 — P0-06 graphify via uv tool, mode AST local (d81f9d6). Rapport à régénérer à la validation.
 - 2026-10-31 — P0-07 6 ADR + architecture.md Mermaid (3620cb1).
+- 2026-11-08 — Bilan P0 : 7/7 tâches validées, 19 tests verts, 6 ADR, graphe de 14 communautés. Ouvert : H-14 image MinIO, H-15 graphify install, run CI GitHub à confirmer.
