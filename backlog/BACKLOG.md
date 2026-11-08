@@ -150,13 +150,13 @@
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 17 | P2-01 | Profilage & empreinte de schéma | Sonnet | P1-05 | Non fait |
-| 18 | P2-02 | Schema registry versionné | Opus | P2-01, P0-02 | Non fait |
-| 19 | P2-03 | Moteur de diff de schémas | Opus | P2-02, P1-07 | Non fait |
-| 20 | P2-04 | Classification d'impact & politique d'évolution | Opus | P2-03 | Non fait |
-| 21 | P2-05 | Rapport d'évolution & événements | Haiku | P2-04 | Non fait |
-| 22 | P2-06 | Intégration à l'ingestion (détection automatique) | Sonnet | P2-04, P1-09 | Non fait |
-| 23 | P2-07 | Tests de propriétés du diff | Sonnet | P2-03 | Non fait |
+| 17 | P2-01 | Profilage & empreinte de schéma | Sonnet | P1-05 | À valider |
+| 18 | P2-02 | Schema registry versionné | Opus | P2-01, P0-02 | À valider |
+| 19 | P2-03 | Moteur de diff de schémas | Opus | P2-02, P1-07 | À valider |
+| 20 | P2-04 | Classification d'impact & politique d'évolution | Opus | P2-03 | À valider |
+| 21 | P2-05 | Rapport d'évolution & événements | Haiku | P2-04 | À valider |
+| 22 | P2-06 | Intégration à l'ingestion (détection automatique) | Sonnet | P2-04, P1-09 | À valider |
+| 23 | P2-07 | Tests de propriétés du diff | Sonnet | P2-03 | À valider |
 
 ### P2-01 — Profilage & empreinte de schéma
 - **Objectif** : Extraire pour chaque colonne : type inféré, nullabilité, cardinalité, stats, exemples.
