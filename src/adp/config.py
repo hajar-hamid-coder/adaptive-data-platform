@@ -1,6 +1,7 @@
 """Typed settings read from environment / .env. Field names match env var names."""
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import SecretStr, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -26,6 +27,8 @@ class Settings(BaseSettings):
 
     adp_llm_monthly_budget_eur: float = 5.0
     anthropic_api_key: SecretStr | None = None
+    adp_llm_model: str = "claude-haiku-5-5"
+    adp_llm_cache_dir: Path = Path("data/llm_cache")
 
     def postgres_url(self, database: str | None = None) -> URL:
         """SQLAlchemy URL of the metadata Postgres (`database` overrides `postgres_db`)."""
