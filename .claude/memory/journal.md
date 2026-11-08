@@ -16,3 +16,4 @@
 - 2026-11-08 — P1-05 Bronze writer (LocalStore/S3Store SigV4 stdlib, put_if_absent, manifeste après parquet) (480ab40).
 - 2026-11-08 — P1-06 dead-letter jsonl idempotent, read_file_with_rejects, seuil 20 % (7133a9c). REST/SQL/xlsx non branchés.
 - 2026-11-08 — P1-07 simulateur de dérive v1→v3 (add/rename/type/drop), stdlib, déterministe (f0f5a4f).
+- 2026-11-08 — P1-08 lifecycle Bronze + CLI adp (archivage par déplacement, manifeste en dernier) (a6f02dd). S3Store list/move sans test automatisé.

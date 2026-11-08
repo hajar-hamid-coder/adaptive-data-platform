@@ -41,3 +41,4 @@ frontend/dist/
 .~lock.*
 graphify-out/manifest.json
 graphify-out/.graphify_*
+.dagster_home/

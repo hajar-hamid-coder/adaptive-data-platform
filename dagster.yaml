@@ -1,0 +1,7 @@
+# Local dev instance. Use: export DAGSTER_HOME=$PWD/.dagster_home && cp dagster.yaml $DAGSTER_HOME/
+# Default storage is SQLite under DAGSTER_HOME. No secrets here.
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: QueuedRunCoordinator
+  config:
+    max_concurrent_runs: 1
