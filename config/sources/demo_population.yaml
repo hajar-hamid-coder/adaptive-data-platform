@@ -1,0 +1,7 @@
+# Demo file source pointing at a test fixture, so `dagster asset materialize` works offline.
+name: demo_population
+type: file
+uri: tests/data/drift/v1/population.csv
+format: csv
+frequency: manual
+primary_key: [region, annee]

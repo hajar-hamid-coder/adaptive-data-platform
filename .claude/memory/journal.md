@@ -9,3 +9,14 @@
 - 2026-10-31 — P0-06 graphify via uv tool, mode AST local (d81f9d6). Rapport à régénérer à la validation.
 - 2026-10-31 — P0-07 6 ADR + architecture.md Mermaid (3620cb1).
 - 2026-11-08 — Bilan P0 : 7/7 tâches validées, 19 tests verts, 6 ADR, graphe de 14 communautés. Ouvert : H-14 image MinIO, H-15 graphify install, run CI GitHub à confirmer.
+- 2026-11-08 — P1-01 SourceSpec + registry YAML (9752028).
+- 2026-11-08 — P1-02 connecteur fichiers RawTable sans pandas (f1103ad). .gitignore : !tests/data/.
+- 2026-11-08 — P1-03 connecteur REST httpx+tenacity, Retry-After en secondes (fa20c06).
+- 2026-11-08 — P1-04 connecteur SQL incrémental + WatermarkStore, SQLite/Postgres (ce64f40).
+- 2026-11-08 — P1-05 Bronze writer (LocalStore/S3Store SigV4 stdlib, put_if_absent, manifeste après parquet) (480ab40).
+- 2026-11-08 — P1-06 dead-letter jsonl idempotent, read_file_with_rejects, seuil 20 % (7133a9c). REST/SQL/xlsx non branchés.
+- 2026-11-08 — P1-07 simulateur de dérive v1→v3 (add/rename/type/drop), stdlib, déterministe (f0f5a4f).
+- 2026-11-08 — P1-08 lifecycle Bronze + CLI adp (archivage par déplacement, manifeste en dernier) (a6f02dd). S3Store list/move sans test automatisé.
+- 2026-11-08 — P1-09 assets/sensor Dagster 1.13, store local|s3 par env, concurrence 1, sans partition (7d57823).
+- 2026-11-08 — Bilan P1 : 9/9 tâches à valider, 116 tests verts (12 slow MinIO/Postgres). Dette : H-17 partitions, REST/SQL/xlsx hors dead-letter et Dagster (H-18), sensor non testé avec démon.
+- 2026-11-08 — Bilan P1 validé : 9/9 tâches, 116 tests (12 slow), graphe 25 communautés. Dette : H-17 partitions, H-18 REST/SQL/xlsx hors dead-letter et Dagster, H-14 image MinIO, H-01/H-08 ouvertes.

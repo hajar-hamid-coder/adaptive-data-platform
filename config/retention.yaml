@@ -1,0 +1,8 @@
+# Rétention Bronze : un lot dont ingestion_date < aujourd'hui - retention_days est archivé
+# (déplacé sous archive_prefix, jamais supprimé ni réécrit).
+default:
+  retention_days: 90
+  archive_prefix: _archive
+sources:
+  world_bank_gdp:
+    retention_days: 365

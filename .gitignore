@@ -22,6 +22,7 @@ build/
 
 # data & artefacts
 data/
+!tests/data/
 *.duckdb
 *.parquet
 !tests/data/**/*.parquet
@@ -40,3 +41,4 @@ frontend/dist/
 .~lock.*
 graphify-out/manifest.json
 graphify-out/.graphify_*
+.dagster_home/

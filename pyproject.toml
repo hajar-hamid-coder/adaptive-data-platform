@@ -6,12 +6,22 @@ readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.12"
 dependencies = [
+    "charset-normalizer>=3.5.2",
+    "dagster>=1.13.29",
     "duckdb",
+    "httpx>=0.28.1",
     "openpyxl",
+    "psycopg[binary]>=3.3.8",
     "pydantic",
     "pydantic-settings>=2.16.2",
+    "pyyaml>=6.0.3",
+    "sqlalchemy>=2.1.8",
     "structlog>=26.1.0",
+    "tenacity>=9.2.1",
 ]
+
+[project.scripts]
+adp = "adp.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -25,7 +35,9 @@ dev = [
     "mypy",
     "pre-commit",
     "pytest",
+    "respx>=0.23.1",
     "ruff",
+    "types-pyyaml>=6.0.12.20261103",
 ]
 
 [tool.ruff]
@@ -46,3 +58,7 @@ testpaths = ["tests"]
 markers = [
     "slow: tests nécessitant Docker, réseau ou clé LLM",
 ]
+
+[[tool.mypy.overrides]]
+module = ["openpyxl", "openpyxl.*"]
+ignore_missing_imports = true

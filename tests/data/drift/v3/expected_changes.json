@@ -1,0 +1,22 @@
+{
+  "changes_from_previous": [
+    {
+      "column": "population_totale",
+      "from": "integer",
+      "op": "type_change",
+      "to": "string"
+    },
+    {
+      "column": "taux_chomage",
+      "from": "float",
+      "op": "type_change",
+      "to": "string"
+    },
+    {
+      "column": "taux_activite",
+      "op": "drop_column"
+    }
+  ],
+  "file": "population.csv",
+  "version": "v3"
+}
