@@ -32,3 +32,4 @@
 - 2026-11-08 — P3-01 dictionnaire sémantique 15 champs (géo, temps, indicateurs), normalize sans accents/camelCase, doublon de synonyme refusé (4156081).
 - 2026-11-08 — P3-02 mapping règles (exact 1.0, normalisé 0.98, synonyme 0.95, fuzzy rapidfuzz ratio/token_sort x0.94), 1 candidat par champ, seuil 0.60, baseline bruitée 28/30 (e2e9c81).
 - 2026-11-08 — P3-03 LLMProvider (Claude via SDK anthropic, repli local), RAG n-grammes local, garde-fou assert_no_raw_values, liste fermée par colonne, cache disque atomique, budget estimé (2ba00a3). Non testé avec vraie clé.
+- 2026-11-08 — P3-04 decide() pur (0.90/0.60 H-02, garde-fous tie/type/abstention/fuzzy/local), review_queue + mapping_decision_log append-only, CLI adp review list/approve/reject (--by obligatoire), migration 0003 (3acc170).

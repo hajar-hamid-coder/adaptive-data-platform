@@ -40,3 +40,7 @@ class LLMError(AdpError):
 
 class MappingError(AdpError):
     """Mapping decision or human review failure (messages carry no data value)."""
+
+
+class TransformError(MappingError):
+    """Invalid transformation rule or value that cannot be transformed (no data value inside)."""

@@ -18,7 +18,10 @@ from adp.connectors.files import BadRow, read_file_with_rejects
 from adp.errors import IngestionError
 from adp.logging import get_logger
 
-Reason = Literal["wrong_field_count", "invalid_json", "not_an_object"]
+# Row reject reasons. Transform rejects (P3-05) use "transform_error:<column>:<op>".
+Reason = Literal["wrong_field_count", "invalid_json", "not_an_object", "transform_error"]
+TRANSFORM_ERROR = "transform_error"
+MAX_REJECT_RATE = 0.20  # H-02: a batch with >= 20 % rejected rows fails
 T = TypeVar("T")
 log = get_logger(__name__)
 
@@ -93,7 +96,7 @@ def ingest_with_deadletter(
     store: ObjectStore,
     ingestion_date: date | None = None,
     now: Callable[[], datetime] | None = None,
-    max_reject_rate: float = 0.20,
+    max_reject_rate: float = MAX_REJECT_RATE,
     retry: RetryPolicy | None = None,
 ) -> IngestSummary:
     """Read a file, send bad rows to dead-letter, valid rows to Bronze; nothing is lost."""

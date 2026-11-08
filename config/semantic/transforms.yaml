@@ -1,0 +1,40 @@
+# Transformations de types des champs canoniques (P3-05), une entrée par champ de canonical.yaml.
+# DSL déclaratif à liste blanche fermée (src/adp/mapping/transform.py) : chargé par
+# yaml.safe_load, validé (pydantic, extra=forbid) AVANT toute exécution ; aucune évaluation de code.
+# Ops : strip, lower, upper, null_if, cast, parse_date, map_values, unit_convert, round.
+# Les étapes s'appliquent dans l'ordre à la valeur brute (texte) ; le type final doit
+# correspondre au type du champ canonique. Les valeurs sentinelles sont citées ("-", "null")
+# pour rester des chaînes YAML. Unités : on conserve l'unité canonique (champ `unit`) :
+#   - taux en "%" : « 16,1 % » ou « 16.1 » -> 16.1 (pourcent, pas de conversion en ratio) ;
+#   - PIB en USD : une source en kUSD ajouterait {op: unit_convert, from_unit: kUSD, to_unit: USD}.
+fields:
+  - target: country_name
+    steps: [{op: strip}, {op: null_if, values: ["", "-", "N/A", "null"]}]
+  - target: country_code
+    steps: [{op: strip}, {op: upper}, {op: null_if, values: ["", "-", "N/A", "NULL"]}]
+  - target: region
+    steps: [{op: strip}, {op: null_if, values: ["", "-", "N/A", "null"]}]
+  - target: year
+    steps: [{op: cast, to: integer}]
+  - target: period
+    steps: [{op: null_if, values: ["", "-", "N/A", "null"]}, {op: parse_date, dayfirst: true}]
+  - target: population_total
+    steps: [{op: null_if, values: ["", "-", "N/A", "null", ".."]}, {op: cast, to: integer}]
+  - target: unemployment_rate
+    steps: [{op: null_if, values: ["", "-", "N/A", "null", ".."]}, {op: cast, to: float}]
+  - target: activity_rate
+    steps: [{op: null_if, values: ["", "-", "N/A", "null", ".."]}, {op: cast, to: float}]
+  - target: gdp_current_usd
+    steps: [{op: null_if, values: ["", "-", "N/A", "null", ".."]}, {op: cast, to: float}]
+  - target: gdp_per_capita_usd
+    steps: [{op: null_if, values: ["", "-", "N/A", "null", ".."]}, {op: cast, to: float}]
+  - target: inflation_rate
+    steps: [{op: null_if, values: ["", "-", "N/A", "null", ".."]}, {op: cast, to: float}]
+  - target: life_expectancy
+    steps: [{op: null_if, values: ["", "-", "N/A", "null", ".."]}, {op: cast, to: float}]
+  - target: literacy_rate
+    steps: [{op: null_if, values: ["", "-", "N/A", "null", ".."]}, {op: cast, to: float}]
+  - target: indicator_code
+    steps: [{op: strip}]
+  - target: indicator_name
+    steps: [{op: strip}]
