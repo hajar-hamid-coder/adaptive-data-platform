@@ -8,11 +8,13 @@ requires-python = ">=3.12"
 dependencies = [
     "charset-normalizer>=3.5.2",
     "duckdb",
+    "httpx>=0.28.1",
     "openpyxl",
     "pydantic",
     "pydantic-settings>=2.16.2",
     "pyyaml>=6.0.3",
     "structlog>=26.1.0",
+    "tenacity>=9.2.1",
 ]
 
 [build-system]
@@ -27,6 +29,7 @@ dev = [
     "mypy",
     "pre-commit",
     "pytest",
+    "respx>=0.23.1",
     "ruff",
     "types-pyyaml>=6.0.12.20261103",
 ]
