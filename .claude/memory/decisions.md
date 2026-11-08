@@ -13,3 +13,6 @@ Format : `YYYY-MM-DD — décision — raison`.
 - 2026-11-08 — Bronze immuable : `put_if_absent` partout, parquet écrit avant le manifeste (manifeste = lot complet), `batch_hash` indépendant du run_id pour détecter le rejeu.
 - 2026-11-08 — Archivage = déplacement vers `_archive/` (manifeste déplacé en dernier), jamais de réécriture ; seuil de rejet par lot 20 % (H-02).
 - 2026-11-08 — Dagster sans partitions pour le MVP (H-17) ; store `local|s3` choisi par variables d'environnement.
+- 2026-11-08 — Diff de schémas : le nom domine le score de renommage (poids 0.7), type et distribution ne font que confirmer ; un changement de FORMAT (format_hint) est distinct d'un changement de TYPE car le profilage relit « 1 080 551 » comme entier.
+- 2026-11-08 — Registre : une version = une empreinte structurelle ; un renommage compte comme suppression+ajout donc MAJOR dans `classify_bump` (le diff le détecte à part).
+- 2026-11-08 — Schema gate : seul `AUTO_APPLY` laisse passer vers Silver ; `QUEUE_REVIEW` et `BLOCK` arrêtent le lot (Failure Dagster, statut blocked, cause review_required|blocking_change). Le schéma bloqué est quand même enregistré au registre et le Bronze reste intact.

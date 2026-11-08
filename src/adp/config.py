@@ -4,6 +4,7 @@ from functools import lru_cache
 
 from pydantic import SecretStr, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import URL
 
 from adp.errors import ConfigError
 
@@ -25,6 +26,17 @@ class Settings(BaseSettings):
 
     adp_llm_monthly_budget_eur: float = 5.0
     anthropic_api_key: SecretStr | None = None
+
+    def postgres_url(self, database: str | None = None) -> URL:
+        """SQLAlchemy URL of the metadata Postgres (`database` overrides `postgres_db`)."""
+        return URL.create(
+            "postgresql+psycopg",
+            username=self.postgres_user,
+            password=self.postgres_password.get_secret_value(),
+            host=self.postgres_host,
+            port=self.postgres_port,
+            database=database or self.postgres_db,
+        )
 
 
 @lru_cache

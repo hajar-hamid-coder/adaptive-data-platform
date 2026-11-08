@@ -146,17 +146,17 @@
 
 ## P2 — Détection de schéma & gestion des évolutions
 
-*Registry versionné, diff de schémas, classification d'impact, politique d'évolution.* — gate utilisateur : **Non**
+*Registry versionné, diff de schémas, classification d'impact, politique d'évolution.* — gate utilisateur : **Oui**
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 17 | P2-01 | Profilage & empreinte de schéma | Sonnet | P1-05 | Non fait |
-| 18 | P2-02 | Schema registry versionné | Opus | P2-01, P0-02 | Non fait |
-| 19 | P2-03 | Moteur de diff de schémas | Opus | P2-02, P1-07 | Non fait |
-| 20 | P2-04 | Classification d'impact & politique d'évolution | Opus | P2-03 | Non fait |
-| 21 | P2-05 | Rapport d'évolution & événements | Haiku | P2-04 | Non fait |
-| 22 | P2-06 | Intégration à l'ingestion (détection automatique) | Sonnet | P2-04, P1-09 | Non fait |
-| 23 | P2-07 | Tests de propriétés du diff | Sonnet | P2-03 | Non fait |
+| 17 | P2-01 | Profilage & empreinte de schéma | Sonnet | P1-05 | Validé |
+| 18 | P2-02 | Schema registry versionné | Opus | P2-01, P0-02 | Validé |
+| 19 | P2-03 | Moteur de diff de schémas | Opus | P2-02, P1-07 | Validé |
+| 20 | P2-04 | Classification d'impact & politique d'évolution | Opus | P2-03 | Validé |
+| 21 | P2-05 | Rapport d'évolution & événements | Haiku | P2-04 | Validé |
+| 22 | P2-06 | Intégration à l'ingestion (détection automatique) | Sonnet | P2-04, P1-09 | Validé |
+| 23 | P2-07 | Tests de propriétés du diff | Sonnet | P2-03 | Validé |
 
 ### P2-01 — Profilage & empreinte de schéma
 - **Objectif** : Extraire pour chaque colonne : type inféré, nullabilité, cardinalité, stats, exemples.

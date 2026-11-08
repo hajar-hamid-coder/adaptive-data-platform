@@ -15,4 +15,5 @@ La plateforme doit conserver des métadonnées transactionnelles : sources, vers
 
 - Transactions et contraintes garantissent la cohérence des mappings et des décisions de revue.
 - Le SQL doit rester portable entre PostgreSQL et SQLite (pas de type propriétaire dans le cœur) ; les tests d'intégration marqués `slow` tournent sur PostgreSQL réel.
+- Couche d'accès (P2-02) : SQLAlchemy Core (tables portables, sans ORM), DDL possédé par Alembic (`alembic.ini`, `migrations/`, URL issue de `Settings`, aucun secret versionné) ; les tables créées à la demande hors registry (`adp_watermarks`) sont ignorées par Alembic. Premier usage : `adp.schema.registry`.
 - L'extension `pgvector` pourra servir au RAG du mapping sans nouvelle brique.

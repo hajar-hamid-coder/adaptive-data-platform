@@ -20,3 +20,12 @@
 - 2026-11-08 — P1-09 assets/sensor Dagster 1.13, store local|s3 par env, concurrence 1, sans partition (7d57823).
 - 2026-11-08 — Bilan P1 : 9/9 tâches à valider, 116 tests verts (12 slow MinIO/Postgres). Dette : H-17 partitions, REST/SQL/xlsx hors dead-letter et Dagster (H-18), sensor non testé avec démon.
 - 2026-11-08 — Bilan P1 validé : 9/9 tâches, 116 tests (12 slow), graphe 25 communautés. Dette : H-17 partitions, H-18 REST/SQL/xlsx hors dead-letter et Dagster, H-14 image MinIO, H-01/H-08 ouvertes.
+- 2026-11-08 — P2-01 profilage + empreinte structurelle sha256 (nom,type,nullable), formats FR/EN, jj/mm par défaut (5d69366).
+- 2026-11-08 — P2-02 SchemaRegistry (version=empreinte structurelle, semver classify_bump, retour à v1 = version existante), Alembic 0001 (34c1bdd).
+- 2026-11-08 — P2-03 diff de schémas : score renommage 0.7 nom/0.1 type/0.2 distribution, seuils 0.60/0.90 (H-02), format_change distinct de type_change (fd6ed25).
+- 2026-11-08 — P2-04 politique d'évolution YAML (règles ordonnées par ChangeKind, totale, rule_id audit, sévérité max) (ab18a12). Hypothèses H-19 règles de sévérité.
+- 2026-11-08 — P2-05 rapport FR Markdown/JSON + EventBus synchrone, 1 événement par changement, rejeu sans ré-émission (e7b28f0). report_evolution reçoit le profil précédent car le registre ne stocke pas les stats.
+- 2026-11-08 — P2-06 schema_check_<source> Dagster : seul AUTO_APPLY passe, REVIEW et BLOCK lèvent Failure (blocked, cause), schéma bloqué quand même enregistré, Bronze intact (5505995).
+- 2026-11-08 — P2-07 10 propriétés hypothesis (500 ex., derandomize) sur diff_schemas, 0 contre-exemple (465f3bb). Dev dep : hypothesis.
+- 2026-11-08 — Revue P2 : défaut majeur corrigé (a8202c5) : le gate diffuse contre la dernière version ACCEPTÉE (schema_version.accepted_at, migration 0002, registry.accept/baseline), un dérivé d'un schéma bloqué reste bloqué. Bilan P2 : 7/7 à valider, 348 tests (14 slow). Dette : semver vs baseline (H-20), H-19 règles, H-17/H-18, SQLite dev ancienne sans accepted_at.
+- 2026-11-08 — Bilan P2 validé : 7/7 tâches, 348 tests (14 slow), graphe 58 communautés. Défaut majeur corrigé en revue (baseline = dernière version acceptée). Dette : H-19 règles de sévérité, H-20 semver vs baseline, H-17/H-18, H-14, CI GitHub non vérifiée.
