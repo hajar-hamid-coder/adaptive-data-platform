@@ -1,0 +1,7 @@
+# HCP (Maroc) open-data population file, CSV. Local copy; URI is illustrative.
+name: hcp_population
+type: file
+uri: data/raw/hcp/population_par_region.csv
+format: csv
+frequency: manual
+primary_key: [region, annee]

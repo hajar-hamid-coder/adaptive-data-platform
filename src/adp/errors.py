@@ -19,3 +19,7 @@ class QualityError(AdpError):
 
 class IngestionError(AdpError):
     """Source ingestion failure."""
+
+
+class SourceSpecError(AdpError):
+    """Invalid source specification (YAML syntax, field or registry error)."""

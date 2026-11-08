@@ -1,0 +1,7 @@
+# World Bank open API: GDP (current US$), JSON, no authentication.
+name: world_bank_gdp
+type: api
+uri: https://api.worldbank.org/v2/country/MAR/indicator/NY.GDP.MKTP.CD?format=json&per_page=500
+format: json
+frequency: monthly
+primary_key: [countryiso3code, date]
