@@ -1,0 +1,141 @@
+source_col,expected_target,category,split,note
+unempl_rt,unemployment_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+unemploymnt_rate,unemployment_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+chomage_taux,unemployment_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+tx_chom,unemployment_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+Taux Chomage,unemployment_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+pop_tot,population_total,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+POPULATION TOTALE,population_total,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+popultion,population_total,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+nb habitants,population_total,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+gdp_per_cap,gdp_per_capita_usd,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+PIB par hab,gdp_per_capita_usd,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+gdp_usd_courants,gdp_current_usd,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+Life Expct,life_expectancy,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+esperance vie,life_expectancy,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+inflation_pct,inflation_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+Taux d'inflation (%),inflation_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+literacy_pct,literacy_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+taux alphabet.,literacy_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+taux_activ,activity_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+Labor force particip,activity_rate,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+pays_nom,country_name,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+cntry,country_name,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+iso,country_code,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+code pays iso,country_code,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+Région admin,region,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+yr,year,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+Année de référence,year,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+obs_date,period,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+indic_code,indicator_code,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+libellé indicateur,indicator_name,noisy,dev,vu au réglage des règles (tests/mapping/test_rules.py)
+country_name,country_name,easy,dev,
+Pays,country_name,easy,dev,
+nom_pays,country_name,easy,dev,
+country_code,country_code,easy,dev,
+Code_Pays,country_code,easy,dev,
+ISO3,country_code,easy,dev,
+region,region,easy,dev,
+Wilaya,region,easy,dev,
+year,year,easy,dev,
+Année,year,easy,dev,
+period,period,easy,dev,
+Période,period,easy,dev,
+population_total,population_total,easy,dev,
+Population totale,population_total,easy,dev,
+unemployment_rate,unemployment_rate,easy,dev,
+Taux de chômage,unemployment_rate,easy,dev,
+gdp_current_usd,gdp_current_usd,easy,dev,
+PIB,gdp_current_usd,easy,dev,
+inflation_rate,inflation_rate,easy,dev,
+life_expectancy,life_expectancy,easy,dev,
+Taux d'activité,activity_rate,easy,dev,
+alphabetisation,literacy_rate,easy,dev,
+Country Name,country_name,noisy,dev,libellé style World Bank
+Country Code,country_code,noisy,dev,libellé style World Bank
+Indicator Name,indicator_name,noisy,dev,libellé style World Bank
+Indicator Code,indicator_code,noisy,dev,libellé style World Bank
+GDP (current US$),gdp_current_usd,noisy,dev,libellé style World Bank
+"Population, total",population_total,noisy,dev,libellé style World Bank
+GDP per capita (current US$),gdp_per_capita_usd,noisy,dev,libellé style World Bank
+"Life expectancy at birth, total (years)",life_expectancy,noisy,dev,libellé style World Bank
+email,,unmappable,dev,hors domaine
+telephone,,unmappable,dev,hors domaine
+commentaire,,unmappable,dev,hors domaine
+id_commande,,unmappable,dev,hors domaine
+prix_unitaire,,unmappable,dev,hors domaine
+adresse,,unmappable,dev,hors domaine
+statut,,unmappable,dev,hors domaine
+nom_client,,unmappable,dev,hors domaine
+date_naissance,,unmappable,dev,hors domaine
+sexe,,unmappable,dev,hors domaine
+quantite,,unmappable,dev,hors domaine
+montant_ttc,,unmappable,dev,hors domaine
+mot_de_passe,,unmappable,dev,hors domaine
+created_by,,unmappable,dev,hors domaine
+url_source,,unmappable,dev,hors domaine
+ip_address,,unmappable,dev,hors domaine
+code_postal,,unmappable,dev,hors domaine
+latitude,,unmappable,dev,hors domaine
+value,,ambiguous,dev,valeur sans contexte (indicateur long ?)
+valeur,,ambiguous,dev,"idem, FR"
+date,period,ambiguous,dev,"synonyme de period au dictionnaire, mais pourrait être une date technique"
+code,,ambiguous,dev,"code de quoi ? pays, indicateur, autre"
+pop,population_total,easy,holdout,
+habitants,population_total,easy,holdout,
+pib_usd,gdp_current_usd,easy,holdout,
+unemployment,unemployment_rate,easy,holdout,
+taux_inflation,inflation_rate,easy,holdout,
+life_exp,life_expectancy,easy,holdout,
+province,region,easy,holdout,
+date_observation,period,easy,holdout,
+reference_year,year,easy,holdout,
+series_code,indicator_code,easy,holdout,
+libelle_indicateur,indicator_name,easy,holdout,
+countryiso3code,country_code,easy,holdout,
+taux_alphabetisation,literacy_rate,easy,holdout,
+NY.GDP.MKTP.CD,gdp_current_usd,noisy,holdout,code World Bank
+SP.POP.TOTL,population_total,noisy,holdout,code World Bank
+SL.UEM.TOTL.ZS,unemployment_rate,noisy,holdout,code World Bank
+FP.CPI.TOTL.ZG,inflation_rate,noisy,holdout,code World Bank
+SP.DYN.LE00.IN,life_expectancy,noisy,holdout,code World Bank
+SE.ADT.LITR.ZS,literacy_rate,noisy,holdout,code World Bank
+NY.GDP.PCAP.CD,gdp_per_capita_usd,noisy,holdout,code World Bank
+SL.TLF.CACT.ZS,activity_rate,noisy,holdout,"code World Bank, absent des synonymes"
+Population totale (en milliers),population_total,noisy,holdout,unité entre parenthèses
+PIB (US$ courants),gdp_current_usd,noisy,holdout,unité entre parenthèses
+Taux de chômage (en %),unemployment_rate,noisy,holdout,unité entre parenthèses
+Esp. de vie à la naissance,life_expectancy,noisy,holdout,abréviation
+nbre_hab,population_total,noisy,holdout,abréviation
+Pop. résidente,population_total,noisy,holdout,abréviation
+Région économique,region,noisy,holdout,qualificatif ajouté
+cd_pays,country_code,noisy,holdout,abréviation
+Année d'enquête,year,noisy,holdout,qualificatif ajouté
+chômage BIT (%),unemployment_rate,noisy,holdout,qualificatif ajouté
+Nom du pays,country_name,noisy,holdout,tournure FR
+Libellé de la série,indicator_name,noisy,holdout,tournure FR
+"Inflation, prix à la consommation (% annuel)",inflation_rate,noisy,holdout,libellé World Bank FR
+indicateur,indicator_name,ambiguous,holdout,"libellé ou code ? en FR, souvent le libellé"
+Valeur observée,,ambiguous,holdout,sans contexte
+nom,,ambiguous,holdout,"nom de quoi ? pays, région, indicateur"
+taux,,ambiguous,holdout,taux de quoi ?
+total,,ambiguous,holdout,total de quoi ?
+Email_contact,,unmappable,holdout,hors domaine
+tel_mobile,,unmappable,holdout,hors domaine
+remarques,,unmappable,holdout,hors domaine
+numero_commande,,unmappable,holdout,hors domaine
+prix_ht,,unmappable,holdout,hors domaine
+adresse_postale,,unmappable,holdout,hors domaine
+etat_dossier,,unmappable,holdout,hors domaine
+prenom,,unmappable,holdout,hors domaine
+date_creation,,unmappable,holdout,hors domaine
+date_livraison,,unmappable,holdout,hors domaine
+poids_kg,,unmappable,holdout,hors domaine
+taille_cm,,unmappable,holdout,hors domaine
+devise,,unmappable,holdout,hors domaine
+numero_facture,,unmappable,holdout,hors domaine
+taux_tva,,unmappable,holdout,hors domaine
+taux_remise,,unmappable,holdout,hors domaine
+code_produit,,unmappable,holdout,hors domaine
+nom_produit,,unmappable,holdout,hors domaine
+annee_naissance,,unmappable,holdout,"année de naissance, pas année de mesure"

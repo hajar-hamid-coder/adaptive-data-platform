@@ -36,3 +36,4 @@
 - 2026-11-08 — P3-05 DSL transform en liste blanche fermée (9 ops, union pydantic discriminée, strict, extra=forbid), Decimal pour les unités, erreurs par ligne vers dead-letter transform_error, config/semantic/transforms.yaml (7427f13).
 - 2026-11-08 — P3-06 clean_table (texte par champ via cleaning.yaml, typage via DSL P3-05, journal de corrections sans valeurs, rejets dead-letter) (61f7b45).
 - 2026-11-12 — P3-07 dedup (clé naturelle, blocking préfixe/suffixe, rapidfuzz min des champs texte, composantes connexes, survivance complétude>récence>ordre, paires à revoir non fusionnées) (a5784e4).
+- 2026-11-12 — P3-08 write_silver (Parquet typé, schema_vN, put_if_absent, manifeste après parquet) + learn.py (approve humain seulement, collisions/génériques refusés, plafond 50, fichier appris hors git) ; pytest importlib (364106e). Rien n'est branché dans l'orchestration.
