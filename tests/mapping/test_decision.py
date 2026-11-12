@@ -204,6 +204,16 @@ def test_submit_is_idempotent(queue: ReviewQueue) -> None:
     assert [e.action for e in queue.journal("hcp")] == ["auto_apply", "reject"]
 
 
+def test_auto_apply_confirming_human_approval_is_not_journaled(queue: ReviewQueue) -> None:
+    (qid,) = queue.submit([cand("reg_x", "region", 0.70)], "hcp", now=T0).queued
+    queue.approve(qid, "alice", now=T0)
+    res = queue.submit([cand("reg_x", "region", 0.95)], "hcp", now=T1)  # learned synonym
+    assert [d.proposal.target for d in res.auto_applied] == ["region"]
+    assert [e.action for e in queue.journal("hcp")] == ["approve"]
+    queue.submit([cand("reg_x", "year", 0.95)], "hcp", now=T1)  # a different target is journaled
+    assert [e.action for e in queue.journal("hcp")] == ["approve", "auto_apply"]
+
+
 def test_new_proposal_supersedes_pending(queue: ReviewQueue) -> None:
     (old,) = queue.submit([cand("a", "region", 0.70)], "hcp", now=T0).queued
     (new,) = queue.submit([cand("a", "country_name", 0.75)], "hcp", now=T1).queued

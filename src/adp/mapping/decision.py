@@ -28,8 +28,10 @@ by Alembic revision 0003):
   proposal is not re-queued, and an auto_apply of a human-rejected key is vetoed). A new
   proposal for a column supersedes its older pending rows.
 - `mapping_decision_log`: append-only journal of EVERY decision (auto_apply, approve, reject,
-  revert, supersede), actor 'system' or a human id. The API never updates or deletes it
-  (enforcing it at DB level = GRANT INSERT/SELECT only, deployment concern).
+  revert, supersede), actor 'system' or a human id; an auto_apply that merely re-confirms
+  the column's latest decision (same system auto_apply, or a human approve of the same target,
+  e.g. resolved next run by the learned synonym) is not re-journaled. The API never updates or
+  deletes it (enforcing it at DB level = GRANT INSERT/SELECT only, deployment concern).
 - Decisions use a conditional `UPDATE ... WHERE status = 'pending'`: of two concurrent
   approvals exactly one wins, the other gets a MappingError (no double decision).
 - `revert(log_id)`: only the latest decision of a column; journals 'revert' and puts the item
@@ -458,7 +460,14 @@ class ReviewQueue:
                 last.prompt_version,
                 last.actor,
             ) == (d.action, p.target, p.prompt_version, SYSTEM)
-            if not same:
+            # an auto_apply re-confirming a standing HUMAN approval of the same target is not
+            # journaled: it would become the column's latest decision and un-learn it (learn.py)
+            confirms = (
+                last is not None
+                and d.action == "auto_apply"
+                and (last.action, last.target) == ("approve", p.target)
+            )
+            if not same and not confirms:
                 conn.execute(insert(lg).values(_log_values(
                     p, queue_id=None, source_name=source_name, action=d.action, actor=SYSTEM,
                     reason=reason, decided_at=ts, note=None,

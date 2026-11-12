@@ -27,7 +27,8 @@ Decisions:
   reasons only.
 - Profile = the Bronze parquet of THIS batch, minus technical columns, so it reflects the data
   actually ingested.
-- Dagster: `schema_check_<source>` returns metadata `status=passed`; when blocked it raises a
+- Dagster: `schema_check_<source>` returns metadata `status=passed`, `version` and the
+  `parquet_path` of the batch it checked (Silver reads both); when blocked it raises a
   `dagster.Failure` carrying `status=blocked`, `cause`, `reasons`, `report_path` in its
   metadata. The run ends in a controlled FAILURE and downstream assets (Silver) do not run.
 """
@@ -50,6 +51,7 @@ from dagster import (
     asset,
 )
 from pydantic import BaseModel, ConfigDict
+from sqlalchemy import Engine
 
 from adp.bronze.store import ObjectStore
 from adp.bronze.writer import TECH_COLUMNS
@@ -232,8 +234,12 @@ class SchemaRegistryResource(ConfigurableResource):  # type: ignore[type-arg]
 
     url: str = ""
 
+    def engine(self) -> Engine:
+        """Metadata DB engine (also hosts the mapping review queue and decision journal)."""
+        return make_engine(self.url or None)
+
     def registry(self) -> SchemaRegistry:
-        return SchemaRegistry(make_engine(self.url or None))
+        return SchemaRegistry(self.engine())
 
 
 def make_schema_check_asset(spec: SourceSpec) -> AssetsDefinition:
@@ -271,6 +277,7 @@ def make_schema_check_asset(spec: SourceSpec) -> AssetsDefinition:
             "overall_action": res.overall_action.value,
             "report_path": MetadataValue.text(res.report_path or ""),
             "reasons": MetadataValue.text("\n".join(res.reasons)),
+            "parquet_path": MetadataValue.text(path),  # the batch checked (read by Silver)
         }
         if res.status == "blocked":
             raise Failure(
