@@ -213,15 +213,15 @@
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 24 | P3-01 | Modèle canonique & dictionnaire sémantique | Sonnet | P2-01 | Non fait |
-| 25 | P3-02 | Mapping par règles & fuzzy | Sonnet | P3-01 | Non fait |
-| 26 | P3-03 | Mapping assisté par LLM + RAG | Opus | P3-02 | Non fait |
-| 27 | P3-04 | Politique de décision & revue humaine | Opus | P3-02, P3-03 | Non fait |
-| 28 | P3-05 | Transformations de types sûres | Opus | P3-04 | Non fait |
-| 29 | P3-06 | Nettoyage & normalisation | Sonnet | P3-05 | Non fait |
-| 30 | P3-07 | Déduplication | Sonnet | P3-06 | Non fait |
-| 31 | P3-08 | Écriture Silver & apprentissage du dictionnaire | Sonnet | P3-07 | Non fait |
-| 32 | P3-09 | Évaluation du mapping (jeu annoté) | Sonnet | P3-03, P3-08 | Non fait |
+| 24 | P3-01 | Modèle canonique & dictionnaire sémantique | Sonnet | P2-01 | À valider |
+| 25 | P3-02 | Mapping par règles & fuzzy | Sonnet | P3-01 | À valider |
+| 26 | P3-03 | Mapping assisté par LLM + RAG | Opus | P3-02 | À valider |
+| 27 | P3-04 | Politique de décision & revue humaine | Opus | P3-02, P3-03 | À valider |
+| 28 | P3-05 | Transformations de types sûres | Opus | P3-04 | À valider |
+| 29 | P3-06 | Nettoyage & normalisation | Sonnet | P3-05 | À valider |
+| 30 | P3-07 | Déduplication | Sonnet | P3-06 | À valider |
+| 31 | P3-08 | Écriture Silver & apprentissage du dictionnaire | Sonnet | P3-07 | À valider |
+| 32 | P3-09 | Évaluation du mapping (jeu annoté) | Sonnet | P3-03, P3-08 | À valider |
 
 ### P3-01 — Modèle canonique & dictionnaire sémantique
 - **Objectif** : Définir les champs cibles et leurs synonymes (FR/EN).

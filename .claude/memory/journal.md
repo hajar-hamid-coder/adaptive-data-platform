@@ -38,3 +38,4 @@
 - 2026-11-12 — P3-07 dedup (clé naturelle, blocking préfixe/suffixe, rapidfuzz min des champs texte, composantes connexes, survivance complétude>récence>ordre, paires à revoir non fusionnées) (a5784e4).
 - 2026-11-12 — P3-08 write_silver (Parquet typé, schema_vN, put_if_absent, manifeste après parquet) + learn.py (approve humain seulement, collisions/génériques refusés, plafond 50, fichier appris hors git) ; pytest importlib (364106e). Rien n'est branché dans l'orchestration.
 - 2026-11-12 — P3-09 éval mapping : gold 140 colonnes (82 dev/58 holdout, 26 % unmappable), métriques + Wilson + confusion, mode rules+llm borné non mesuré faute de clé (cbe0612). Critère LLM non vérifié.
+- 2026-11-12 — Revue P3 : OK avec réserves, aucun défaut majeur. Bilan P3 : 9/9 à valider, 689 tests (16 slow). Dette : H-24 câblage Silver/Dagster + schema_version, critère LLM non vérifié (H-09/H-21), H-22/H-23, CI GitHub non vérifiée.
