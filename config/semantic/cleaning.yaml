@@ -1,0 +1,14 @@
+# Règles de nettoyage de TEXTE par champ canonique (P3-06), complément de transforms.yaml.
+# Chargé par yaml.safe_load, modèle pydantic extra=forbid. Politique TOTALE : chaque champ de type
+# string du dictionnaire doit avoir une règle (les champs non-string reçoivent seulement le
+# nettoyage commun : caractères invisibles, espaces, Unicode NFC, valeurs manquantes).
+#   case       : keep | upper | lower | title (casse titre sûre : traits d'union, apostrophes,
+#                particules de/du/des/la/le/les/et/sur/sous/en/d/l en minuscules hors début).
+#   accent_key : true -> une clé de jointure sans accents `<champ>_key` est ajoutée, SEULEMENT si
+#                CleaningPolicy(join_keys=True). L'affichage conserve toujours les accents.
+fields:
+  - {target: country_name, case: title, accent_key: true}
+  - {target: country_code, case: upper}
+  - {target: region, case: title, accent_key: true}
+  - {target: indicator_code, case: upper}
+  - {target: indicator_name, case: keep}

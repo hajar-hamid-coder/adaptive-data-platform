@@ -51,8 +51,8 @@ _NUM_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     ),
     (re.compile(r"\d+(?:[.,]\d+)?"), ""),
 ]
-_BOOL_WORDS = {"true", "false", "yes", "no", "oui", "non", "vrai", "faux"}
-_DATE_FORMATS = [
+BOOL_WORDS = {"true", "false", "yes", "no", "oui", "non", "vrai", "faux"}
+DATE_FORMATS = [
     ("%Y-%m-%d", re.compile(r"\d{4}-\d{2}-\d{2}")),
     ("%Y/%m/%d", re.compile(r"\d{4}/\d{2}/\d{2}")),
     ("%d/%m/%Y", re.compile(r"\d{2}/\d{2}/\d{4}")),
@@ -98,7 +98,7 @@ class SchemaFingerprint(BaseModel):
     fingerprint_unordered: str
 
 
-def _parse_number(s: str) -> tuple[int | float, frozenset[str], bool] | None:
+def parse_number(s: str) -> tuple[int | float, frozenset[str], bool] | None:
     """Parse a FR/EN number -> (value, hint tokens, is_integer), or None."""
     tokens: set[str] = set()
     if s.endswith("%"):
@@ -134,7 +134,7 @@ def _parse_number(s: str) -> tuple[int | float, frozenset[str], bool] | None:
     return (-val if neg else val), frozenset(tokens), is_int
 
 
-def _valid_date(v: str, fmt: str, rx: re.Pattern[str]) -> bool:
+def valid_date(v: str, fmt: str, rx: re.Pattern[str]) -> bool:
     if not rx.fullmatch(v):
         return False
     try:
@@ -144,7 +144,7 @@ def _valid_date(v: str, fmt: str, rx: re.Pattern[str]) -> bool:
     return True
 
 
-def _is_datetime(v: str) -> bool:
+def is_datetime(v: str) -> bool:
     if not _DATETIME_RE.fullmatch(v):
         return False
     try:
@@ -156,9 +156,9 @@ def _is_datetime(v: str) -> bool:
 
 def _date_hint_from(counter: Counter[str]) -> tuple[str, int]:
     """Best date format (ties -> day-first) and number of values valid under it."""
-    best_fmt, best = _DATE_FORMATS[0][0], 0
-    for fmt, rx in _DATE_FORMATS:
-        n = sum(c for v, c in counter.items() if _valid_date(v, fmt, rx))
+    best_fmt, best = DATE_FORMATS[0][0], 0
+    for fmt, rx in DATE_FORMATS:
+        n = sum(c for v, c in counter.items() if valid_date(v, fmt, rx))
         if n > best:
             best_fmt, best = fmt, n
     return best_fmt, best
@@ -211,14 +211,14 @@ def profile_column(
         )
 
     # boolean
-    words = sum(c for v, c in counter.items() if v.lower() in _BOOL_WORDS)
+    words = sum(c for v, c in counter.items() if v.lower() in BOOL_WORDS)
     if set(counter) == {"0", "1"}:
         return make("boolean", 1.0, "0/1")
     if words / total >= thr:
         return make("boolean", words / total)
 
     # numbers
-    parsed = {v: _parse_number(v) for v in counter}
+    parsed = {v: parse_number(v) for v in counter}
     nums = {v: p for v, p in parsed.items() if p is not None}
     num_share = sum(counter[v] for v in nums) / total
     if num_share >= thr:
@@ -236,8 +236,8 @@ def profile_column(
         )
 
     # datetime / date
-    dt = sum(c for v, c in counter.items() if _is_datetime(v))
-    iso_date = sum(c for v, c in counter.items() if _valid_date(v, *_DATE_FORMATS[0]))
+    dt = sum(c for v, c in counter.items() if is_datetime(v))
+    iso_date = sum(c for v, c in counter.items() if valid_date(v, *DATE_FORMATS[0]))
     dt_share = (dt + iso_date) / total if dt else 0.0
     fmt, n_date = _date_hint_from(counter)
     date_share = n_date / total

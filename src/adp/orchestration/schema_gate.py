@@ -27,7 +27,8 @@ Decisions:
   reasons only.
 - Profile = the Bronze parquet of THIS batch, minus technical columns, so it reflects the data
   actually ingested.
-- Dagster: `schema_check_<source>` returns metadata `status=passed`; when blocked it raises a
+- Dagster: `schema_check_<source>` returns metadata `status=passed`, `version` and the
+  `parquet_path` of the batch it checked (Silver reads both); when blocked it raises a
   `dagster.Failure` carrying `status=blocked`, `cause`, `reasons`, `report_path` in its
   metadata. The run ends in a controlled FAILURE and downstream assets (Silver) do not run.
 """
@@ -50,25 +51,23 @@ from dagster import (
     asset,
 )
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Engine
 
 from adp.bronze.store import ObjectStore
 from adp.bronze.writer import TECH_COLUMNS
-from adp.config import get_settings
 from adp.connectors.files import RawTable
 from adp.errors import SchemaError
 from adp.logging import bind_run_id, get_logger
 from adp.schema.events import EventBus
 from adp.schema.policy import ChangeImpact, EvolutionAction, EvolutionPolicy, load_policy
 from adp.schema.profile import SchemaFingerprint, profile_table
-from adp.schema.registry import SchemaRegistry, SchemaVersion, metadata
+from adp.schema.registry import SchemaRegistry, SchemaVersion, make_engine
 from adp.schema.report import render_markdown, report_evolution
 from adp.sources.spec import SourceSpec
 
 log = get_logger(__name__)
 STATE_PREFIX = "_schema"
 DEFAULT_POLICY = "config/evolution_policy.yaml"
-DEFAULT_REGISTRY_URL = "sqlite:///data/registry.db"
 _SEVERITY = {
     EvolutionAction.AUTO_APPLY: 0,
     EvolutionAction.QUEUE_REVIEW: 1,
@@ -235,18 +234,12 @@ class SchemaRegistryResource(ConfigurableResource):  # type: ignore[type-arg]
 
     url: str = ""
 
+    def engine(self) -> Engine:
+        """Metadata DB engine (also hosts the mapping review queue and decision journal)."""
+        return make_engine(self.url or None)
+
     def registry(self) -> SchemaRegistry:
-        url = self.url or os.environ.get("ADP_REGISTRY_URL", DEFAULT_REGISTRY_URL)
-        engine: Engine
-        if url == "postgres":
-            engine = create_engine(get_settings().postgres_url())
-        else:
-            if url.startswith("sqlite:///"):
-                Path(url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
-            engine = create_engine(url)
-            if url.startswith("sqlite"):
-                metadata.create_all(engine)
-        return SchemaRegistry(engine)
+        return SchemaRegistry(self.engine())
 
 
 def make_schema_check_asset(spec: SourceSpec) -> AssetsDefinition:
@@ -284,6 +277,7 @@ def make_schema_check_asset(spec: SourceSpec) -> AssetsDefinition:
             "overall_action": res.overall_action.value,
             "report_path": MetadataValue.text(res.report_path or ""),
             "reasons": MetadataValue.text("\n".join(res.reasons)),
+            "parquet_path": MetadataValue.text(path),  # the batch checked (read by Silver)
         }
         if res.status == "blocked":
             raise Failure(

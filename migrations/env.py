@@ -1,7 +1,8 @@
 """Alembic environment for the ADP metadata database (online mode only).
 
-Only the registry tables are managed: other tables of the same database (e.g. `adp_watermarks`,
-created on demand by the SQL connector) are ignored by autogenerate.
+Only the tables of `metadata` (schema registry + mapping review, P3-04) are managed: other
+tables of the same database (e.g. `adp_watermarks`, created on demand by the SQL connector)
+are ignored by autogenerate.
 """
 
 from logging.config import fileConfig
@@ -9,6 +10,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import create_engine
 
+import adp.mapping.decision  # noqa: F401 - registers review tables on `metadata`
 from adp.config import get_settings
 from adp.schema.registry import metadata
 

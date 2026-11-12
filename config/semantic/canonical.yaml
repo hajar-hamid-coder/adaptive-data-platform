@@ -1,0 +1,89 @@
+# Modèle canonique ADP (H-01 : indicateurs socio-économiques, sources publiques).
+# Un champ = un nom cible (snake_case anglais), un type du profileur, une description FR,
+# des synonymes FR/EN (noms de colonnes plausibles). Le nom du champ est un synonyme implicite.
+# Aucun synonyme ne peut désigner deux champs (vérifié au chargement, après normalisation).
+fields:
+  - name: country_name
+    type: string
+    domain: geography
+    description: "Nom du pays."
+    synonyms: [pays, country, nation, nom_pays, country_name_en, country.value]
+  - name: country_code
+    type: string
+    domain: geography
+    description: "Code pays ISO 3166-1 alpha-3 (ex. MAR)."
+    synonyms: [countryiso3code, country_iso3, iso3, iso_code, code_pays, code_iso, country.id]
+  - name: region
+    type: string
+    domain: geography
+    description: "Région administrative infranationale."
+    synonyms: [wilaya, province, region_name, nom_region, zone, territoire, area]
+  - name: year
+    type: integer
+    domain: time
+    unit: année
+    description: "Année de référence de la mesure."
+    synonyms: [annee, millesime, exercice, reference_year, year_ref, an]
+  - name: period
+    type: date
+    domain: time
+    description: "Date ou période de référence de la mesure."
+    synonyms: [date, periode, mois, observation_date, date_observation, date_ref]
+  - name: population_total
+    type: integer
+    domain: indicator
+    unit: personnes
+    description: "Population totale résidente."
+    synonyms: [population, pop, population_totale, total_population, habitants, nb_habitants, nombre_habitants, sp_pop_totl]
+  - name: unemployment_rate
+    type: float
+    domain: indicator
+    unit: "%"
+    description: "Taux de chômage, en pourcentage de la population active."
+    synonyms: [chomage, taux_chomage, taux_de_chomage, unemployment, unemployment_rate_pct, sl_uem_totl_zs, jobless_rate]
+  - name: activity_rate
+    type: float
+    domain: indicator
+    unit: "%"
+    description: "Taux d'activité, part de la population active dans la population en âge de travailler."
+    synonyms: [taux_activite, taux_d_activite, labor_force_participation, labour_force_participation_rate, participation_rate, activity]
+  - name: gdp_current_usd
+    type: float
+    domain: indicator
+    unit: USD
+    description: "Produit intérieur brut en dollars américains courants."
+    synonyms: [gdp, pib, pib_usd, gdp_usd, gdp_current, produit_interieur_brut, ny_gdp_mktp_cd]
+  - name: gdp_per_capita_usd
+    type: float
+    domain: indicator
+    unit: USD
+    description: "Produit intérieur brut par habitant, en dollars américains courants."
+    synonyms: [gdp_per_capita, pib_par_habitant, pib_habitant, pib_per_capita, ny_gdp_pcap_cd]
+  - name: inflation_rate
+    type: float
+    domain: indicator
+    unit: "%"
+    description: "Taux d'inflation annuel (indice des prix à la consommation)."
+    synonyms: [inflation, taux_inflation, taux_d_inflation, cpi_inflation, fp_cpi_totl_zg]
+  - name: life_expectancy
+    type: float
+    domain: indicator
+    unit: années
+    description: "Espérance de vie à la naissance."
+    synonyms: [esperance_de_vie, esperance_vie, life_exp, life_expectancy_at_birth, sp_dyn_le00_in]
+  - name: literacy_rate
+    type: float
+    domain: indicator
+    unit: "%"
+    description: "Taux d'alphabétisation des adultes."
+    synonyms: [alphabetisation, taux_alphabetisation, taux_d_alphabetisation, adult_literacy, literacy, se_adt_litr_zs]
+  - name: indicator_code
+    type: string
+    domain: identifier
+    description: "Code de l'indicateur mesuré (sources au format long, ex. World Bank)."
+    synonyms: [indicator, indicator.id, code_indicateur, series_code, indicateur_id]
+  - name: indicator_name
+    type: string
+    domain: identifier
+    description: "Libellé de l'indicateur mesuré (sources au format long)."
+    synonyms: [indicator.value, indicator_label, libelle_indicateur, series_name, nom_indicateur]

@@ -7,6 +7,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.20.1",
+    "anthropic>=2.6.0",
     "charset-normalizer>=3.5.2",
     "dagster>=1.13.29",
     "duckdb",
@@ -16,6 +17,7 @@ dependencies = [
     "pydantic",
     "pydantic-settings>=2.16.2",
     "pyyaml>=6.0.3",
+    "rapidfuzz>=3.14.6",
     "sqlalchemy>=2.1.8",
     "structlog>=26.1.0",
     "tenacity>=9.2.1",
@@ -57,6 +59,7 @@ files = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = ["--import-mode=importlib"]  # tests/bronze/test_writer.py et tests/silver/test_writer.py
 markers = [
     "slow: tests nécessitant Docker, réseau ou clé LLM",
 ]
