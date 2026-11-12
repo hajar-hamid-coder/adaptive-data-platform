@@ -59,6 +59,7 @@ files = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = ["--import-mode=importlib"]  # tests/bronze/test_writer.py et tests/silver/test_writer.py
 markers = [
     "slow: tests nécessitant Docker, réseau ou clé LLM",
 ]

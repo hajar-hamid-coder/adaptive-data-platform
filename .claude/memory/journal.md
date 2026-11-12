@@ -35,3 +35,4 @@
 - 2026-11-08 — P3-04 decide() pur (0.90/0.60 H-02, garde-fous tie/type/abstention/fuzzy/local), review_queue + mapping_decision_log append-only, CLI adp review list/approve/reject (--by obligatoire), migration 0003 (3acc170).
 - 2026-11-08 — P3-05 DSL transform en liste blanche fermée (9 ops, union pydantic discriminée, strict, extra=forbid), Decimal pour les unités, erreurs par ligne vers dead-letter transform_error, config/semantic/transforms.yaml (7427f13).
 - 2026-11-08 — P3-06 clean_table (texte par champ via cleaning.yaml, typage via DSL P3-05, journal de corrections sans valeurs, rejets dead-letter) (61f7b45).
+- 2026-11-12 — P3-07 dedup (clé naturelle, blocking préfixe/suffixe, rapidfuzz min des champs texte, composantes connexes, survivance complétude>récence>ordre, paires à revoir non fusionnées) (a5784e4).
