@@ -40,3 +40,4 @@
 - 2026-11-12 — P3-09 éval mapping : gold 140 colonnes (82 dev/58 holdout, 26 % unmappable), métriques + Wilson + confusion, mode rules+llm borné non mesuré faute de clé (cbe0612). Critère LLM non vérifié.
 - 2026-11-12 — Revue P3 : OK avec réserves, aucun défaut majeur. Bilan P3 : 9/9 à valider, 689 tests (16 slow). Dette : H-24 câblage Silver/Dagster + schema_version, critère LLM non vérifié (H-09/H-21), H-22/H-23, CI GitHub non vérifiée.
 - 2026-11-12 — Câblage Silver (demandé par l'utilisateur avant validation P3) : silver_<source> en aval de schema_check, schema_version du registre, garde mapping_incomplete, store silver séparé, boucle d'apprentissage bout en bout ; bug auto_apply désapprenant corrigé (a3d98b6).
+- 2026-11-12 — Bilan P3 validé : 9/9 tâches, 697 tests (16 slow), graphe 96 communautés. Silver câblé dans Dagster avant validation. Dette : critère LLM non vérifié (H-09/H-21, pas de clé API), H-22/H-23/H-25, CI GitHub non vérifiée.
