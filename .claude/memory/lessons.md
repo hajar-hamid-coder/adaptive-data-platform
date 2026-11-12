@@ -11,3 +11,4 @@ Format : `YYYY-MM-DD — piège — correction`. (Vide au démarrage.)
 - Sous macOS, `sed -i` exige `-i ''` ; le hook guard_bash interdit `rm -rf` : utiliser des répertoires neufs dans le scratchpad.
 - Garde-fou de schéma : ne jamais prendre comme référence un schéma non approuvé ; enregistrer pour tracer, accepter explicitement pour comparer (trouvé en revue P2, pas par les tests du sous-agent).
 - Dans un script shell, `$?` est écrasé par les substitutions `$(...)` placées avant lui : capturer `rc=$?` juste après la commande.
+- ruff global (0.12) ≠ ruff du projet (0.17.3) : toujours lancer `uv run ruff check .` ; UP038 n'existe plus dans la version du projet.

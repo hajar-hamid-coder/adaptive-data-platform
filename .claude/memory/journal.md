@@ -37,3 +37,4 @@
 - 2026-11-08 — P3-06 clean_table (texte par champ via cleaning.yaml, typage via DSL P3-05, journal de corrections sans valeurs, rejets dead-letter) (61f7b45).
 - 2026-11-12 — P3-07 dedup (clé naturelle, blocking préfixe/suffixe, rapidfuzz min des champs texte, composantes connexes, survivance complétude>récence>ordre, paires à revoir non fusionnées) (a5784e4).
 - 2026-11-12 — P3-08 write_silver (Parquet typé, schema_vN, put_if_absent, manifeste après parquet) + learn.py (approve humain seulement, collisions/génériques refusés, plafond 50, fichier appris hors git) ; pytest importlib (364106e). Rien n'est branché dans l'orchestration.
+- 2026-11-12 — P3-09 éval mapping : gold 140 colonnes (82 dev/58 holdout, 26 % unmappable), métriques + Wilson + confusion, mode rules+llm borné non mesuré faute de clé (cbe0612). Critère LLM non vérifié.
