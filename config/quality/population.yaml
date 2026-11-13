@@ -1,0 +1,22 @@
+# Règles qualité du domaine population (champs canoniques de canonical.yaml).
+# Une règle sur une colonne absente du lot est "skipped" (pas un échec).
+# Pas de règle de fraîcheur ici : les séries sont annuelles et historiques (ex. 2019-2022) ;
+# la fraîcheur se déclare par source datée (type freshness, as_of injecté).
+rules:
+  - {id: region_not_null, type: not_null, column: region, description: "La région est obligatoire."}
+  - {id: year_not_null, type: not_null, column: year, description: "L'année est obligatoire."}
+  - id: region_year_unique
+    type: unique
+    columns: [region, year]
+    description: "Une seule ligne par région et par année."
+  - id: region_in_ma_referential
+    type: reference
+    column: region
+    reference_file: regions_ma
+    reference_field: region
+    description: "Région parmi les 12 régions administratives du Maroc."
+  - {id: country_code_iso3, type: regex, column: country_code, pattern: '^[A-Z]{3}$', description: "Code pays ISO alpha-3."}
+  - {id: year_plausible, type: range, column: year, min: 1900, max: 2100}
+  - {id: population_non_negative, type: range, column: population_total, min: 0}
+  - {id: unemployment_pct, type: range, column: unemployment_rate, min: 0, max: 100}
+  - {id: activity_pct, type: range, column: activity_rate, min: 0, max: 100}
