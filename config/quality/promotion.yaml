@@ -1,0 +1,4 @@
+# Gate final Silver -> Gold (P4-07). Seuil PROVISOIRE (H-02/H-xx), à recalibrer sur données réelles.
+# Un lot n'est promu que si : aucune règle de sévérité error en échec, aucune quarantaine de lot,
+# score qualité >= min_score (et score calculable).
+min_score: 80

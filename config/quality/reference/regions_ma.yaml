@@ -1,0 +1,15 @@
+# Référentiel fermé : les 12 régions administratives du Maroc (découpage 2015).
+# Graphie identique à celle produite par le nettoyage Silver (accents et casse de titre conservés).
+region:
+  - Tanger-Tétouan-Al Hoceïma
+  - L'Oriental
+  - Fès-Meknès
+  - Rabat-Salé-Kénitra
+  - Béni Mellal-Khénifra
+  - Casablanca-Settat
+  - Marrakech-Safi
+  - Drâa-Tafilalet
+  - Souss-Massa
+  - Guelmim-Oued Noun
+  - Laâyoune-Sakia El Hamra
+  - Dakhla-Oued Ed-Dahab

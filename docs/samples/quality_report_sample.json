@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "run_id": "run-2026-01-31-001",
+  "source": "clients_synthetic",
+  "generated_at": "2026-01-31T12:00:00+00:00",
+  "summary": {
+    "status": "scored",
+    "score": 89.369173,
+    "rows_total": 40,
+    "rows_failed": 4,
+    "ok": false,
+    "dimensions": {
+      "completeness": 97.5,
+      "validity": 80.0,
+      "uniqueness": 97.435897,
+      "freshness": 100.0
+    }
+  },
+  "columns": [
+    {
+      "column": "customer_id",
+      "required": true,
+      "completeness": 97.5,
+      "validity": null,
+      "uniqueness": 97.435897,
+      "freshness": null,
+      "score": 97.47669,
+      "rows_failed": 1
+    },
+    {
+      "column": "amount",
+      "required": false,
+      "completeness": 100.0,
+      "validity": 95.0,
+      "uniqueness": null,
+      "freshness": null,
+      "score": 95.0,
+      "rows_failed": 2
+    },
+    {
+      "column": "city",
+      "required": false,
+      "completeness": 100.0,
+      "validity": 65.0,
+      "uniqueness": null,
+      "freshness": null,
+      "score": 65.0,
+      "rows_failed": 0
+    },
+    {
+      "column": "last_order_date",
+      "required": false,
+      "completeness": 100.0,
+      "validity": null,
+      "uniqueness": null,
+      "freshness": 100.0,
+      "score": 100.0,
+      "rows_failed": 0
+    },
+    {
+      "column": "basket_items",
+      "required": false,
+      "completeness": 100.0,
+      "validity": null,
+      "uniqueness": null,
+      "freshness": null,
+      "score": null,
+      "rows_failed": 0
+    }
+  ],
+  "failed_rules": [
+    {
+      "rule_id": "customer_id_present",
+      "type": "not_null",
+      "severity": "error",
+      "level": "row",
+      "column": "customer_id",
+      "evaluated": 40,
+      "failed_count": 1,
+      "failed_rows": [
+        5
+      ],
+      "message": "1 ligne(s) sur 40 en échec (colonne customer_id)."
+    },
+    {
+      "rule_id": "customer_id_unique",
+      "type": "unique",
+      "severity": "error",
+      "level": "row",
+      "column": "customer_id",
+      "evaluated": 39,
+      "failed_count": 1,
+      "failed_rows": [
+        9
+      ],
+      "message": "1 ligne(s) sur 39 en échec (colonne customer_id)."
+    },
+    {
+      "rule_id": "amount_range",
+      "type": "range",
+      "severity": "error",
+      "level": "row",
+      "column": "amount",
+      "evaluated": 40,
+      "failed_count": 2,
+      "failed_rows": [
+        12,
+        20
+      ],
+      "message": "2 ligne(s) sur 40 en échec (colonne amount)."
+    },
+    {
+      "rule_id": "city_format",
+      "type": "regex",
+      "severity": "warn",
+      "level": "row",
+      "column": "city",
+      "evaluated": 40,
+      "failed_count": 14,
+      "failed_rows": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21,
+        24,
+        27
+      ],
+      "message": "14 ligne(s) sur 40 en échec (colonne city)."
+    }
+  ],
+  "top_anomalies": [
+    {
+      "column": "amount",
+      "method": "iqr",
+      "evaluated": 40,
+      "outlier_count": 2,
+      "outlier_rate": 0.05,
+      "row_indices": [
+        12,
+        20
+      ]
+    },
+    {
+      "column": "basket_items",
+      "method": "robust_zscore",
+      "evaluated": 40,
+      "outlier_count": 1,
+      "outlier_rate": 0.025,
+      "row_indices": [
+        30
+      ]
+    }
+  ],
+  "drift": [
+    {
+      "column": "amount",
+      "kind": "numeric",
+      "sizes": [
+        60,
+        60
+      ],
+      "psi": 1.6958866542721662,
+      "psi_level": "strong",
+      "ks_pvalue": 0.038730426997572474,
+      "drifted": true,
+      "reason": "psi_strong",
+      "skipped_reason": null
+    }
+  ],
+  "quarantine": {
+    "level": "row",
+    "alert": true,
+    "failed_rate": 0.1,
+    "batch_reasons": [],
+    "quarantined_rows": 4
+  }
+}

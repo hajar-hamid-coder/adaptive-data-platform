@@ -13,3 +13,4 @@ Format : `YYYY-MM-DD — piège — correction`. (Vide au démarrage.)
 - Dans un script shell, `$?` est écrasé par les substitutions `$(...)` placées avant lui : capturer `rc=$?` juste après la commande.
 - ruff global (0.12) ≠ ruff du projet (0.17.3) : toujours lancer `uv run ruff check .` ; UP038 n'existe plus dans la version du projet.
 - Un test de bout en bout a révélé un bug que les tests unitaires de P3-04/P3-08 ne voyaient pas (auto_apply système écrasant l'approbation humaine comme « dernière décision ») : câbler tôt, tester la boucle complète.
+- Test hypothesis dérandomisé ≠ garanti : le contre-exemple n'apparaît que selon l'ordre/volume de la suite. Quand un test de propriété échoue seul en suite complète, rejouer le contre-exemple isolément et corriger la cause (ici difflib.ratio asymétrique), jamais le marquer flaky.

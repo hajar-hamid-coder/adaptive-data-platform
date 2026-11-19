@@ -1,0 +1,33 @@
+# Contrôles métier inter-colonnes du domaine population (P4-06), chargés par load_rules().
+# `expression` : prédicat booléen sur les colonnes déclarées (`columns`), grammaire en liste blanche
+# (voir adp.quality.expression) : comparaisons, AND/OR/NOT, + - * /, parenthèses, littéraux,
+# DATE 'AAAA-MM-JJ', IS [NOT] NULL, COALESCE, ABS, CAST(.. AS INTEGER|DOUBLE|VARCHAR|DATE).
+# Toute autre construction (sous-requête, fonction, `;`, commentaire, colonne non déclarée) est
+# refusée au chargement. Une valeur NULL rend la ligne "inconnue" (ni évaluée ni en échec) ;
+# une ligne non évaluable (types incompatibles, division par zéro) est en échec.
+rules:
+  - id: population_requires_year
+    type: expression
+    columns: [population_total, year]
+    expression: "population_total IS NULL OR year IS NOT NULL"
+    description: "Une population renseignée doit avoir une année."
+  - id: gdp_per_capita_consistent
+    type: expression
+    severity: warn
+    columns: [gdp_current_usd, gdp_per_capita_usd, population_total]
+    expression: "ABS(gdp_per_capita_usd * population_total - gdp_current_usd) <= 0.05 * ABS(gdp_current_usd)"
+    description: "PIB total = PIB par habitant x population, à 5 % près."
+  - id: observation_period_plausible
+    type: expression
+    columns: [period]
+    expression: "period >= DATE '1900-01-01' AND period <= DATE '2100-12-31'"
+    description: "La date d'observation est dans une fenêtre plausible."
+  # Inter-sources : total du lot = valeur d'un référentiel chargé (reference/<fichier>.yaml,
+  # champ numérique ; plusieurs valeurs sont additionnées). Désactivé : aucun total officiel n'est
+  # embarqué dans le repo ; à activer en fournissant le référentiel.
+  # - id: regional_sum_equals_national
+  #   type: sum_equals
+  #   column: population_total
+  #   reference_file: national_totals
+  #   reference_field: population_total
+  #   tolerance: 1000

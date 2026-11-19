@@ -10,9 +10,12 @@ from adp.bronze.store import LocalStore, ObjectStore, S3Store
 from adp.errors import AdpError
 from adp.mapping.decision import ReviewItem, ReviewQueue
 from adp.mapping.dictionary import load_dictionary
+from adp.quality.quarantine import QuarantineStore, load_quarantine_config
+from adp.quality.rules import load_references, load_rules
 from adp.schema.registry import make_engine
 
 DEFAULT_DICTIONARY = Path("config/semantic/canonical.yaml")
+QUALITY_DIR = Path("config/quality")
 
 
 def _archive(args: argparse.Namespace) -> int:
@@ -72,6 +75,44 @@ def _review_reject(args: argparse.Namespace) -> int:
     return 0
 
 
+def _qstore(args: argparse.Namespace) -> QuarantineStore:
+    store: ObjectStore = LocalStore(args.store_root) if args.store_root else S3Store("quarantine")
+    return QuarantineStore(store)
+
+
+def _quarantine_list(args: argparse.Namespace) -> int:
+    qs = _qstore(args)
+    batches = qs.list_batches(args.source)
+    print(f"Quarantaine {args.source} : {len(batches)} lot(s)")
+    for b in batches:
+        st = qs.state(args.source, b)
+        c = st.counts
+        print(f"  {b} [{st.status}] niveau={st.level} en quarantaine={c['quarantined']}"
+              f" libérées={c['released']} rejouées={c['replayed']}")  # fmt: skip
+    return 0
+
+
+def _quarantine_release(args: argparse.Namespace) -> int:
+    rows = [int(x) for x in args.rows.split(",")] if args.rows else None
+    out = _qstore(args).release(args.source, args.batch_id, by=args.by, reason=args.reason,
+                                rows=rows)  # fmt: skip
+    print(f"{len(out)} ligne(s) libérée(s) par {args.by.strip()}.")
+    return 0
+
+
+def _quarantine_replay(args: argparse.Namespace) -> int:
+    rules = load_rules(args.rules)
+    refs = load_references(rules, args.references_dir)
+    res = _qstore(args).replay(
+        args.source, args.batch_id, rules, by=args.by, reason=args.reason, references=refs,
+        as_of=date.fromisoformat(args.as_of) if args.as_of else None,
+        config=load_quarantine_config(args.config),
+    )  # fmt: skip
+    print(f"Rejeu : {len(res.passed)} ligne(s) réintégrée(s), "
+          f"{res.still_quarantined} toujours en quarantaine.")  # fmt: skip
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="adp")
     sub = parser.add_subparsers(dest="group", required=True)
@@ -104,6 +145,31 @@ def main(argv: list[str] | None = None) -> int:
         if name == "approve":
             p.add_argument("--target", help="cible corrigée (champ du glossaire canonique)")
             p.add_argument("--dictionary", type=Path, default=DEFAULT_DICTIONARY)
+        p.set_defaults(func=func)
+
+    quarantine = sub.add_parser("quarantine", help="quarantaine qualité").add_subparsers(
+        dest="cmd", required=True
+    )
+    store_help = "dossier local (sinon S3/MinIO, bucket quarantine)"
+    ql = quarantine.add_parser("list", help="lister les lots en quarantaine d'une source")
+    ql.add_argument("source")
+    ql.add_argument("--store-root", type=Path, help=store_help)
+    ql.set_defaults(func=_quarantine_list)
+    for name, func in (("release", _quarantine_release), ("replay", _quarantine_replay)):
+        p = quarantine.add_parser(name, help=f"{name} d'un lot en quarantaine")
+        p.add_argument("source")
+        p.add_argument("batch_id")
+        p.add_argument("--by", required=True, help="auteur (obligatoire)")
+        p.add_argument("--store-root", type=Path, help=store_help)
+        if name == "release":
+            p.add_argument("--reason", required=True, help="raison (obligatoire)")
+            p.add_argument("--rows", help="indices séparés par des virgules (défaut : tous)")
+        else:
+            p.add_argument("--reason", default="replay", help="raison du rejeu")
+            p.add_argument("--rules", type=Path, default=QUALITY_DIR / "population.yaml")
+            p.add_argument("--references-dir", type=Path, default=QUALITY_DIR / "reference")
+            p.add_argument("--config", type=Path, default=QUALITY_DIR / "quarantine.yaml")
+            p.add_argument("--as-of", help="date de référence YYYY-MM-DD pour la fraîcheur")
         p.set_defaults(func=func)
     args = parser.parse_args(argv)
     try:

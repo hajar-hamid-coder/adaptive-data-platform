@@ -23,7 +23,7 @@ from typing import Any
 from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
-from adp.schema.diff import ChangeKind, DiffConfig, SchemaDiff, diff_schemas
+from adp.schema.diff import ChangeKind, DiffConfig, SchemaDiff, diff_schemas, name_similarity
 from adp.schema.profile import ColumnProfile, InferredType
 
 PROP = settings(max_examples=500, deadline=None, derandomize=True, database=None)
@@ -277,3 +277,9 @@ def test_schema_changes_one_row_per_change(a: list[ColumnProfile], b: list[Colum
     d = diff_schemas(a, b)
     rows = d.to_schema_changes()
     assert [r.change_type for r in rows] == [c.kind.value for c in d.changes]
+
+
+def test_name_similarity_is_symmetric_regression() -> None:
+    """'1AeB' vs 'AB_e' scored 0.45 one way, 0.37 the other (difflib and greedy tie-breaks)."""
+    cfg = DiffConfig()
+    assert name_similarity("1AeB", "AB_e", cfg) == name_similarity("AB_e", "1AeB", cfg)
