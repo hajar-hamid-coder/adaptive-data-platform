@@ -1,0 +1,10 @@
+# Détection de valeurs aberrantes par champ canonique (méthodes : zscore | robust_zscore | iqr).
+# threshold : défaut zscore 3.0, robust_zscore 3.5, iqr 1.5 (facteur de Tukey).
+# min_samples (défaut 8) : en dessous, la colonne est "skipped" (pas de fausse alerte).
+columns:
+  population_total: {method: iqr, threshold: 3.0}
+  unemployment_rate: {method: robust_zscore}
+  activity_rate: {method: robust_zscore}
+  gdp_current_usd: {method: iqr, threshold: 3.0}
+  gdp_per_capita_usd: {method: iqr, threshold: 3.0}
+  inflation_rate: {method: robust_zscore, threshold: 5.0}
