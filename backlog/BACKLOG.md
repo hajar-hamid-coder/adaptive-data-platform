@@ -288,17 +288,17 @@
 
 ## P4 — Qualité des données & quarantaine
 
-*Règles qualité, anomalies, scores, quarantaine dynamique, validation Silver→Gold.* — gate utilisateur : **Non**
+*Règles qualité, anomalies, scores, quarantaine dynamique, validation Silver→Gold.* — gate utilisateur : **Oui**
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 33 | P4-01 | Moteur de règles qualité | Sonnet | P3-08 | À valider |
-| 34 | P4-02 | Anomalies & dérive de distribution | Sonnet | P4-01 | À valider |
-| 35 | P4-03 | Score de qualité | Sonnet | P4-01 | À valider |
-| 36 | P4-04 | Quarantaine dynamique | Opus | P4-01, P4-03 | À valider |
-| 37 | P4-05 | Rapports de qualité | Haiku | P4-03 | À valider |
-| 38 | P4-06 | Contrôles métier & cohérence | Sonnet | P4-01 | À valider |
-| 39 | P4-07 | Validation finale Silver → Gold | Sonnet | P4-04, P4-06 | À valider |
+| 33 | P4-01 | Moteur de règles qualité | Sonnet | P3-08 | Validé |
+| 34 | P4-02 | Anomalies & dérive de distribution | Sonnet | P4-01 | Validé |
+| 35 | P4-03 | Score de qualité | Sonnet | P4-01 | Validé |
+| 36 | P4-04 | Quarantaine dynamique | Opus | P4-01, P4-03 | Validé |
+| 37 | P4-05 | Rapports de qualité | Haiku | P4-03 | Validé |
+| 38 | P4-06 | Contrôles métier & cohérence | Sonnet | P4-01 | Validé |
+| 39 | P4-07 | Validation finale Silver → Gold | Sonnet | P4-04, P4-06 | Validé |
 
 ### P4-01 — Moteur de règles qualité
 - **Objectif** : Règles déclaratives : not_null, unique, plage, regex, référentiel, fraîcheur.
