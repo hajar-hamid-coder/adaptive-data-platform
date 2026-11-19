@@ -6,6 +6,11 @@ from pathlib import Path
 from dagster import Definitions, definitions
 
 from adp.orchestration.ingestion import build_store, make_bronze_assets, make_landing_sensor
+from adp.orchestration.promote_asset import (
+    build_gold_store,
+    build_quarantine_store,
+    make_promote_assets,
+)
 from adp.orchestration.schema_gate import SchemaRegistryResource, make_schema_check_assets
 from adp.orchestration.silver_chain import build_silver_store, make_silver_assets
 from adp.sources.spec import load_registry
@@ -21,11 +26,14 @@ def build_definitions(sources_dir: Path | None = None) -> Definitions:
             *make_bronze_assets(registry),
             *make_schema_check_assets(registry),
             *make_silver_assets(registry),
+            *make_promote_assets(registry),
         ],
         sensors=[make_landing_sensor(registry)],
         resources={
             "store": build_store(),
             "silver_store": build_silver_store(),
+            "gold_store": build_gold_store(),
+            "quarantine_store": build_quarantine_store(),
             "schema_registry": SchemaRegistryResource(),
         },
     )
