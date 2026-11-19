@@ -45,3 +45,4 @@
 - 2026-11-19 — P4-02 anomalies (zscore, robust MAD, IQR) + dérive (PSI, KS exact, catégoriel) en Python pur ; PSI biaisé à n=200 avec 10 classes, test des 95 % à n=1000 (391226d).
 - 2026-11-19 — P4-03 score qualité (4 dimensions pondérées, n/a renormalisé, quality_score append-only idempotent, migration 0004, column_name '' pour le lot).
 - 2026-11-19 — P4-04 quarantaine (décision pure, bande 5-20 % = lignes + alerte, ≥20 % ou score<60 ou règle lot error = lot isolé ; stockage objet JSON append-only, release --by/--reason, replay ; CLI adp quarantine). Non branchée à Dagster.
+- 2026-11-19 — P4-05 rapports qualité (build_report JSON v1, render_html Jinja2 autoescape, aucune valeur brute, run_id validé, exemples docs/samples synchronisés par test) ; jinja2 déclaré.

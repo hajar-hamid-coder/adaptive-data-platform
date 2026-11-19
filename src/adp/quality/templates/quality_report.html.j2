@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rapport de qualité {{ report.run_id }}</title>
+<style>
+:root {
+  --bg: #f7f7f5; --fg: #1d1d1b; --muted: #5f6368; --card: #ffffff; --line: #d8d8d2;
+  --ok: #1e7b45; --warn: #9a6400; --err: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161714; --fg: #eeeeea; --muted: #a8aaa3; --card: #1f201d; --line: #3a3c37;
+    --ok: #6fcf97; --warn: #f2c46d; --err: #f28b82;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161714; --fg: #eeeeea; --muted: #a8aaa3; --card: #1f201d; --line: #3a3c37;
+  --ok: #6fcf97; --warn: #f2c46d; --err: #f28b82;
+}
+body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 960px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin: 0 0 4px; }
+h2 { font-size: 1.1rem; margin: 0 0 12px; }
+.meta { color: var(--muted); margin: 0 0 16px; }
+section { background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+  padding: 16px; margin: 0 0 16px; overflow-x: auto; }
+.score { font-size: 2.5rem; font-weight: 700; margin: 0; }
+.dims { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.dims div { min-width: 120px; color: var(--muted); }
+.dims strong { display: block; color: var(--fg); font-size: 1.1rem; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line);
+  vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+.sev-error { color: var(--err); font-weight: 600; }
+.sev-warn { color: var(--warn); font-weight: 600; }
+.ok { color: var(--ok); font-weight: 600; }
+.muted { color: var(--muted); }
+.note { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Rapport de qualité : {{ report.source }}</h1>
+  <p class="meta">Run <code>{{ report.run_id }}</code> · généré le {{ report.generated_at }}
+    · {{ report.summary.rows_total }} lignes analysées</p>
+</header>
+
+<section aria-labelledby="score-title">
+  <h2 id="score-title">Score qualité</h2>
+  {% if report.summary.score is not none %}
+  <p class="score">{{ "%.1f"|format(report.summary.score) }} / 100</p>
+  {% else %}
+  <p class="score">n/a</p>
+  {% endif %}
+  <div class="dims">
+    {% for name, label in [("completeness", "Complétude"), ("validity", "Validité"),
+                           ("uniqueness", "Unicité"), ("freshness", "Fraîcheur")] %}
+    <div>{{ label }}
+      <strong>{% if report.summary.dimensions[name] is not none %}{{ "%.1f"|format(report.summary.dimensions[name]) }}{% else %}n/a{% endif %}</strong>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="note">Lignes en échec : {{ report.summary.rows_failed }} sur {{ report.summary.rows_total }}.</p>
+</section>
+
+<section aria-labelledby="columns-title">
+  <h2 id="columns-title">Scores par colonne</h2>
+  {% if report.columns %}
+  <table>
+    <thead><tr><th>Colonne</th><th>Obligatoire</th><th>Score</th><th>Complétude</th>
+      <th>Validité</th><th>Unicité</th><th>Fraîcheur</th><th>Lignes en échec</th></tr></thead>
+    <tbody>
+    {% for c in report.columns %}
+      <tr><td><code>{{ c.column }}</code></td>
+        <td>{{ "oui" if c.required else "non" }}</td>
+        <td>{{ "%.1f"|format(c.score) if c.score is not none else "n/a" }}</td>
+        <td>{{ "%.1f"|format(c.completeness) if c.completeness is not none else "n/a" }}</td>
+        <td>{{ "%.1f"|format(c.validity) if c.validity is not none else "n/a" }}</td>
+        <td>{{ "%.1f"|format(c.uniqueness) if c.uniqueness is not none else "n/a" }}</td>
+        <td>{{ "%.1f"|format(c.freshness) if c.freshness is not none else "n/a" }}</td>
+        <td>{{ c.rows_failed }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Aucune colonne évaluée.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="rules-title">
+  <h2 id="rules-title">Règles en échec</h2>
+  {% if report.failed_rules %}
+  <table>
+    <thead><tr><th>Règle</th><th>Colonne</th><th>Sévérité</th><th>Lignes en échec</th>
+      <th>Lignes évaluées</th><th>Indices (extrait)</th><th>Détail</th></tr></thead>
+    <tbody>
+    {% for r in report.failed_rules %}
+      <tr><td><code>{{ r.rule_id }}</code> <span class="muted">({{ r.type }})</span></td>
+        <td><code>{{ r.column or "n/a" }}</code></td>
+        <td class="sev-{{ r.severity }}">{{ "bloquante" if r.severity == "error" else "alerte" }}</td>
+        <td>{{ r.failed_count }}</td>
+        <td>{{ r.evaluated }}</td>
+        <td>{{ r.failed_rows|join(", ") if r.failed_rows else "n/a" }}</td>
+        <td>{{ r.message }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="note">Indices de lignes : position dans le lot, {{ sample_rows }} au plus affichés.</p>
+  {% else %}
+  <p class="ok">Aucune règle en échec.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="anomalies-title">
+  <h2 id="anomalies-title">Anomalies (top {{ report.top_anomalies|length }})</h2>
+  {% if report.top_anomalies %}
+  <table>
+    <thead><tr><th>Colonne</th><th>Méthode</th><th>Valeurs aberrantes</th><th>Part</th>
+      <th>Indices (extrait)</th></tr></thead>
+    <tbody>
+    {% for a in report.top_anomalies %}
+      <tr><td><code>{{ a.column }}</code></td><td>{{ a.method }}</td>
+        <td>{{ a.outlier_count }} sur {{ a.evaluated }}</td>
+        <td>{{ "%.2f"|format(a.outlier_rate * 100) }} %</td>
+        <td>{{ a.row_indices|join(", ") }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="ok">Aucune valeur aberrante détectée.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="drift-title">
+  <h2 id="drift-title">Dérive de distribution</h2>
+  {% if report.drift %}
+  <table>
+    <thead><tr><th>Colonne</th><th>Type</th><th>Tailles (réf., actuel)</th><th>PSI</th>
+      <th>Niveau</th><th>p-valeur KS</th><th>Verdict</th></tr></thead>
+    <tbody>
+    {% for d in report.drift %}
+      <tr><td><code>{{ d.column }}</code></td>
+        <td>{{ "numérique" if d.kind == "numeric" else "catégorielle" }}</td>
+        <td>{{ d.sizes|join(" / ") }}</td>
+        <td>{{ "%.3f"|format(d.psi) if d.psi is not none else "n/a" }}</td>
+        <td>{{ d.psi_level or "n/a" }}</td>
+        <td>{{ "%.3f"|format(d.ks_pvalue) if d.ks_pvalue is not none else "n/a" }}</td>
+        <td>{% if d.skipped_reason %}non évaluée ({{ d.skipped_reason }})
+            {% elif d.drifted %}<span class="sev-error">dérive détectée</span>
+            {% else %}<span class="ok">stable</span>{% endif %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Aucune comparaison de dérive pour ce run.</p>
+  {% endif %}
+</section>
+
+<section aria-labelledby="quarantine-title">
+  <h2 id="quarantine-title">Quarantaine</h2>
+  {% if report.quarantine %}
+    {% set q = report.quarantine %}
+    {% if q.level == "none" %}
+      <p class="ok">Aucune ligne isolée : le lot passe en totalité.</p>
+    {% elif q.level == "row" %}
+      <p>{{ q.quarantined_rows }} ligne(s) isolée(s), le reste du lot passe.</p>
+    {% else %}
+      <p class="sev-error">Lot entier isolé ({{ q.quarantined_rows }} lignes) :
+        {{ q.batch_reasons|join(" ; ") }}</p>
+    {% endif %}
+    {% if q.alert %}<p class="sev-warn">Lot dégradé : taux de lignes en échec à surveiller
+      ({{ "%.1f"|format(q.failed_rate * 100) }} %).</p>{% endif %}
+  {% else %}
+  <p class="muted">Aucune décision de quarantaine pour ce run.</p>
+  {% endif %}
+</section>
+</main>
+</body>
+</html>

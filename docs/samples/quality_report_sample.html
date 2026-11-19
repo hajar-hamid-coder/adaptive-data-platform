@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rapport de qualité run-2026-01-31-001</title>
+<style>
+:root {
+  --bg: #f7f7f5; --fg: #1d1d1b; --muted: #5f6368; --card: #ffffff; --line: #d8d8d2;
+  --ok: #1e7b45; --warn: #9a6400; --err: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161714; --fg: #eeeeea; --muted: #a8aaa3; --card: #1f201d; --line: #3a3c37;
+    --ok: #6fcf97; --warn: #f2c46d; --err: #f28b82;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161714; --fg: #eeeeea; --muted: #a8aaa3; --card: #1f201d; --line: #3a3c37;
+  --ok: #6fcf97; --warn: #f2c46d; --err: #f28b82;
+}
+body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 960px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin: 0 0 4px; }
+h2 { font-size: 1.1rem; margin: 0 0 12px; }
+.meta { color: var(--muted); margin: 0 0 16px; }
+section { background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+  padding: 16px; margin: 0 0 16px; overflow-x: auto; }
+.score { font-size: 2.5rem; font-weight: 700; margin: 0; }
+.dims { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+.dims div { min-width: 120px; color: var(--muted); }
+.dims strong { display: block; color: var(--fg); font-size: 1.1rem; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line);
+  vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+.sev-error { color: var(--err); font-weight: 600; }
+.sev-warn { color: var(--warn); font-weight: 600; }
+.ok { color: var(--ok); font-weight: 600; }
+.muted { color: var(--muted); }
+.note { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Rapport de qualité : clients_synthetic</h1>
+  <p class="meta">Run <code>run-2026-01-31-001</code> · généré le 2026-01-31T12:00:00+00:00
+    · 40 lignes analysées</p>
+</header>
+
+<section aria-labelledby="score-title">
+  <h2 id="score-title">Score qualité</h2>
+  <p class="score">89.4 / 100</p>
+  <div class="dims">
+    <div>Complétude
+      <strong>97.5</strong>
+    </div>
+    <div>Validité
+      <strong>80.0</strong>
+    </div>
+    <div>Unicité
+      <strong>97.4</strong>
+    </div>
+    <div>Fraîcheur
+      <strong>100.0</strong>
+    </div>
+  </div>
+  <p class="note">Lignes en échec : 4 sur 40.</p>
+</section>
+
+<section aria-labelledby="columns-title">
+  <h2 id="columns-title">Scores par colonne</h2>
+  <table>
+    <thead><tr><th>Colonne</th><th>Obligatoire</th><th>Score</th><th>Complétude</th>
+      <th>Validité</th><th>Unicité</th><th>Fraîcheur</th><th>Lignes en échec</th></tr></thead>
+    <tbody>
+      <tr><td><code>customer_id</code></td>
+        <td>oui</td>
+        <td>97.5</td>
+        <td>97.5</td>
+        <td>n/a</td>
+        <td>97.4</td>
+        <td>n/a</td>
+        <td>1</td></tr>
+      <tr><td><code>amount</code></td>
+        <td>non</td>
+        <td>95.0</td>
+        <td>100.0</td>
+        <td>95.0</td>
+        <td>n/a</td>
+        <td>n/a</td>
+        <td>2</td></tr>
+      <tr><td><code>city</code></td>
+        <td>non</td>
+        <td>65.0</td>
+        <td>100.0</td>
+        <td>65.0</td>
+        <td>n/a</td>
+        <td>n/a</td>
+        <td>0</td></tr>
+      <tr><td><code>last_order_date</code></td>
+        <td>non</td>
+        <td>100.0</td>
+        <td>100.0</td>
+        <td>n/a</td>
+        <td>n/a</td>
+        <td>100.0</td>
+        <td>0</td></tr>
+      <tr><td><code>basket_items</code></td>
+        <td>non</td>
+        <td>n/a</td>
+        <td>100.0</td>
+        <td>n/a</td>
+        <td>n/a</td>
+        <td>n/a</td>
+        <td>0</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section aria-labelledby="rules-title">
+  <h2 id="rules-title">Règles en échec</h2>
+  <table>
+    <thead><tr><th>Règle</th><th>Colonne</th><th>Sévérité</th><th>Lignes en échec</th>
+      <th>Lignes évaluées</th><th>Indices (extrait)</th><th>Détail</th></tr></thead>
+    <tbody>
+      <tr><td><code>customer_id_present</code> <span class="muted">(not_null)</span></td>
+        <td><code>customer_id</code></td>
+        <td class="sev-error">bloquante</td>
+        <td>1</td>
+        <td>40</td>
+        <td>5</td>
+        <td>1 ligne(s) sur 40 en échec (colonne customer_id).</td></tr>
+      <tr><td><code>customer_id_unique</code> <span class="muted">(unique)</span></td>
+        <td><code>customer_id</code></td>
+        <td class="sev-error">bloquante</td>
+        <td>1</td>
+        <td>39</td>
+        <td>9</td>
+        <td>1 ligne(s) sur 39 en échec (colonne customer_id).</td></tr>
+      <tr><td><code>amount_range</code> <span class="muted">(range)</span></td>
+        <td><code>amount</code></td>
+        <td class="sev-error">bloquante</td>
+        <td>2</td>
+        <td>40</td>
+        <td>12, 20</td>
+        <td>2 ligne(s) sur 40 en échec (colonne amount).</td></tr>
+      <tr><td><code>city_format</code> <span class="muted">(regex)</span></td>
+        <td><code>city</code></td>
+        <td class="sev-warn">alerte</td>
+        <td>14</td>
+        <td>40</td>
+        <td>0, 3, 6, 9, 12, 15, 18, 21, 24, 27</td>
+        <td>14 ligne(s) sur 40 en échec (colonne city).</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Indices de lignes : position dans le lot, 10 au plus affichés.</p>
+</section>
+
+<section aria-labelledby="anomalies-title">
+  <h2 id="anomalies-title">Anomalies (top 2)</h2>
+  <table>
+    <thead><tr><th>Colonne</th><th>Méthode</th><th>Valeurs aberrantes</th><th>Part</th>
+      <th>Indices (extrait)</th></tr></thead>
+    <tbody>
+      <tr><td><code>amount</code></td><td>iqr</td>
+        <td>2 sur 40</td>
+        <td>5.00 %</td>
+        <td>12, 20</td></tr>
+      <tr><td><code>basket_items</code></td><td>robust_zscore</td>
+        <td>1 sur 40</td>
+        <td>2.50 %</td>
+        <td>30</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section aria-labelledby="drift-title">
+  <h2 id="drift-title">Dérive de distribution</h2>
+  <table>
+    <thead><tr><th>Colonne</th><th>Type</th><th>Tailles (réf., actuel)</th><th>PSI</th>
+      <th>Niveau</th><th>p-valeur KS</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td><code>amount</code></td>
+        <td>numérique</td>
+        <td>60 / 60</td>
+        <td>1.696</td>
+        <td>strong</td>
+        <td>0.039</td>
+        <td><span class="sev-error">dérive détectée</span>
+</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section aria-labelledby="quarantine-title">
+  <h2 id="quarantine-title">Quarantaine</h2>
+      <p>4 ligne(s) isolée(s), le reste du lot passe.</p>
+<p class="sev-warn">Lot dégradé : taux de lignes en échec à surveiller
+      (10.0 %).</p></section>
+</main>
+</body>
+</html>
