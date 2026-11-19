@@ -51,3 +51,4 @@
 - 2026-11-19 — Revue P4 : OK avec réserves. D1 gate/quarantaine non alignés (H-28), D3 rapports écrasés au rejeu, D4 regex run_id différentes (report vs score). Dette consignée, aucun défaut bloquant.
 - 2026-11-19 — Bilan P4 validé : 7/7 tâches, 942 tests (17 slow), score/quarantaine/rapports/règles métier/gate Gold. Dette : H-26/H-27/H-28 (seuils, stockage, lots non promus), D3/D4, critère LLM non vérifié, CI GitHub non vérifiée.
 - 2026-11-19 — P5-01 contrats data products (pydantic strict, 3 produits config/products, validation vs dictionnaire/sources/promotion.yaml, criticité effective propagée, docs/bia.md généré et testé synchronisé, adp products validate|bia).
+- 2026-11-19 — P5-02 vues Gold DuckDB (SQL dans sql/gold, enable_external_access=false, 1 seul SELECT, artefacts Parquet immuables adressés par contenu + manifeste, rebuild idempotent, indicateurs à la demande, adp gold build). Non testé de bout en bout avec promote_batch.

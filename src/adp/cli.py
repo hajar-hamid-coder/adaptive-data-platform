@@ -9,8 +9,10 @@ from adp.bronze.lifecycle import apply_archive, load_retention, plan_archive, su
 from adp.bronze.store import LocalStore, ObjectStore, S3Store
 from adp.errors import AdpError
 from adp.gold.contract import PRODUCTS_DIR, impact_matrix, load_products, render_bia_markdown
+from adp.gold.views import build_product
 from adp.mapping.decision import ReviewItem, ReviewQueue
 from adp.mapping.dictionary import load_dictionary
+from adp.orchestration.promote_asset import build_gold_store
 from adp.quality.quarantine import QuarantineStore, load_quarantine_config
 from adp.quality.rules import load_references, load_rules
 from adp.schema.registry import make_engine
@@ -129,6 +131,21 @@ def _products_bia(args: argparse.Namespace) -> int:
     return 0
 
 
+def _gold_build(args: argparse.Namespace) -> int:
+    catalog = {p.name: p for p in load_products()}
+    if args.product and args.product not in catalog:
+        raise ValueError(f"unknown data product '{args.product}'")
+    gold = LocalStore(args.gold_dir) if args.gold_dir else build_gold_store()
+    out = LocalStore(args.out_dir) if args.out_dir else gold
+    for p in catalog.values():
+        if args.product and p.name != args.product:
+            continue
+        b = build_product(p, gold, out, catalog)
+        state = "créé" if b.created else "inchangé"
+        print(f"{b.product} v{b.version} : {b.rows} ligne(s), {b.content_hash[:12]} ({state})")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="adp")
     sub = parser.add_subparsers(dest="group", required=True)
@@ -198,6 +215,14 @@ def main(argv: list[str] | None = None) -> int:
     pb.add_argument("--dir", type=Path, default=PRODUCTS_DIR)
     pb.add_argument("--output", type=Path, default=Path("docs/bia.md"))
     pb.set_defaults(func=_products_bia)
+    gold = sub.add_parser("gold", help="vues et indicateurs Gold").add_subparsers(
+        dest="cmd", required=True
+    )
+    gb = gold.add_parser("build", help="construire les data products (Parquet sous gold/)")
+    gb.add_argument("product", nargs="?", help="produit (défaut : tous)")
+    gb.add_argument("--gold-dir", type=Path, help="racine du store gold_ready (défaut : config)")
+    gb.add_argument("--out-dir", type=Path, help="racine de sortie (défaut : même store)")
+    gb.set_defaults(func=_gold_build)
     args = parser.parse_args(argv)
     try:
         return int(args.func(args))
