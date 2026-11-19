@@ -62,6 +62,7 @@ from adp.quality.rules import (
     Rule,
     RuleResult,
     Unique,
+    _columns,
 )
 from adp.schema.registry import _check_source, metadata
 
@@ -250,20 +251,21 @@ def score_batch(
             if res is None:
                 continue
             sev = 1.0 if rule.severity == "error" else config.warn_weight
+            cols = _columns(rule)
             if isinstance(rule, Unique):
-                if name in rule.columns:
+                if name in cols:
                     uniq.append((sev, _share(res)))
             elif isinstance(rule, NotNull):
                 pass  # covered by completeness, computed on the rows
-            elif rule.column != name:
+            elif name not in cols:
                 continue
             elif isinstance(rule, Freshness):
                 fresh.append((sev, _fresh(rule, res)))
             else:
                 valid.append((sev, _share(res)))
-            if rule.severity == "error" and res.level == "row" and (
-                isinstance(rule, Unique) and name in rule.columns
-                or not isinstance(rule, Unique | NotNull) and rule.column == name
+            if (
+                rule.severity == "error" and res.level == "row"
+                and name in cols and not isinstance(rule, NotNull)
             ):  # fmt: skip
                 failed = max(failed, res.failed_count)
         dims: dict[str, float | None] = {

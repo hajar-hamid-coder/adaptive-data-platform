@@ -46,3 +46,4 @@
 - 2026-11-19 — P4-03 score qualité (4 dimensions pondérées, n/a renormalisé, quality_score append-only idempotent, migration 0004, column_name '' pour le lot).
 - 2026-11-19 — P4-04 quarantaine (décision pure, bande 5-20 % = lignes + alerte, ≥20 % ou score<60 ou règle lot error = lot isolé ; stockage objet JSON append-only, release --by/--reason, replay ; CLI adp quarantine). Non branchée à Dagster.
 - 2026-11-19 — P4-05 rapports qualité (build_report JSON v1, render_html Jinja2 autoescape, aucune valeur brute, run_id validé, exemples docs/samples synchronisés par test) ; jinja2 déclaré.
+- 2026-11-19 — P4-06 règles métier (expression: parseur/évaluateur Python pur à liste blanche, SQL ternaire, 25+ attaques refusées ; sum_equals lot ; business_rules.yaml). Bug latent P2 corrigé : name_similarity asymétrique (difflib ratio + tie-break glouton), trouvé par le test hypothesis en suite complète.

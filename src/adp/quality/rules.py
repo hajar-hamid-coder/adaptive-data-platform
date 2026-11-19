@@ -11,7 +11,12 @@ Conventions:
 - `unique` flags the repeated occurrences, the first one is kept (quarantining both would drop a
   good row).
 - A rule on an ABSENT column is `skipped` (reason in `message`); `strict=True` raises ConfigError.
-- `freshness` is batch-level: one verdict (`failed_count` 1, no row indices).
+- `freshness` and `sum_equals` are batch-level: one verdict (`failed_count` 1, no row indices).
+- `expression` (P4-06): whitelisted predicate on declared columns (see `adp.quality.expression`).
+  A NULL input makes the row "unknown": not evaluated, not failed. A row that cannot be evaluated
+  (type mismatch, division by zero, bad cast) FAILS, like an incompatible type in `range`.
+- `sum_equals`: sum of a numeric column vs the sum of a loaded referential field, with an absolute
+  tolerance. A non-numeric non-null cell fails the batch. Details carry counts, never sums.
 """
 
 import importlib
@@ -28,6 +33,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 from adp.errors import ConfigError
 from adp.mapping.dictionary import SemanticDictionary
 from adp.mapping.transform import Value
+from adp.quality.expression import MAX_EXPR_LEN, evaluate_predicate, parse
 
 Severity = Literal["error", "warn"]
 Status = Literal["passed", "failed", "skipped"]
@@ -172,8 +178,32 @@ class Freshness(_Rule):
     max_age_days: int = Field(ge=0, le=36_500)
 
 
+class Expression(_Rule):
+    """Inter-column predicate, e.g. `date_fin >= date_debut`; checked against `columns` at load."""
+
+    type: Literal["expression"]
+    columns: list[Annotated[str, Field(pattern=_NAME)]] = Field(min_length=1, max_length=10)
+    expression: str = Field(max_length=MAX_EXPR_LEN)
+
+    @model_validator(mode="after")
+    def _whitelisted(self) -> Self:
+        parse(self.expression, self.columns)  # ValueError -> ValidationError -> ConfigError
+        return self
+
+
+class SumEquals(_Rule):
+    """Batch total of `column` must equal the sum of a referential field (within `tolerance`)."""
+
+    type: Literal["sum_equals"]
+    column: str = Field(pattern=_NAME)
+    reference_file: str = Field(pattern=_NAME)
+    reference_field: str = Field(pattern=_NAME)
+    tolerance: float = Field(default=0.0, ge=0, le=1e12)
+
+
 Rule = Annotated[
-    NotNull | Unique | Range | Regex | Reference | Freshness, Field(discriminator="type")
+    NotNull | Unique | Range | Regex | Reference | Freshness | Expression | SumEquals,
+    Field(discriminator="type"),
 ]
 
 
@@ -184,10 +214,10 @@ class _RuleFile(BaseModel):
 
 
 def _columns(rule: Any) -> list[str]:
-    return list(rule.columns) if isinstance(rule, Unique) else [rule.column]
+    return list(rule.columns) if isinstance(rule, Unique | Expression) else [rule.column]
 
 
-def reference_key(rule: Reference) -> str | None:
+def reference_key(rule: Reference | SumEquals) -> str | None:
     """Key under which `evaluate(references=...)` finds this rule's values (file rules only)."""
     if rule.reference_file is None:
         return None
@@ -254,8 +284,10 @@ def load_references(rules: Sequence[Rule], directory: Path) -> dict[str, list[Re
     cache: dict[str, dict[str, list[RefValue]]] = {}
     out: dict[str, list[RefValue]] = {}
     for r in rules:
-        key = reference_key(r) if isinstance(r, Reference) else None
-        if key is None or not isinstance(r, Reference):
+        if not isinstance(r, Reference | SumEquals):
+            continue
+        key = reference_key(r)
+        if key is None:
             continue
         assert r.reference_file is not None and r.reference_field is not None  # noqa: S101
         file = cache.setdefault(
@@ -382,6 +414,37 @@ def _freshness(
     return detail["age_days"] <= rule.max_age_days, detail  # type: ignore[operator]
 
 
+def _expression(rule: Expression, cols: dict[str, Cells], n_rows: int) -> Outcome:
+    node = parse(rule.expression, rule.columns)
+    failed: list[int] = []
+    evaluated = 0
+    for i in range(n_rows):
+        try:
+            verdict = evaluate_predicate(node, {c: cols[c][i] for c in rule.columns})
+        except (TypeError, ValueError, ArithmeticError):
+            verdict = False  # not evaluable: the row fails (no value in any message)
+        if verdict is None:
+            continue
+        evaluated += 1
+        if not verdict:
+            failed.append(i)
+    return evaluated, failed
+
+
+def _sum_equals(
+    rule: SumEquals, cells: Cells, expected: Sequence[RefValue]
+) -> tuple[bool, Detail] | None:
+    """(ok, detail), or None when the referential is not numeric."""
+    if any(isinstance(v, str) for v in expected):
+        return None
+    nums = [v for v in cells if isinstance(v, int | float) and not isinstance(v, bool)]
+    present = sum(v is not None for v in cells)
+    detail: Detail = {"column": rule.column, "tolerance": rule.tolerance, "rows_summed": len(nums)}
+    total, target = math.fsum(nums), math.fsum(v for v in expected if isinstance(v, int))
+    ok = len(nums) == present and abs(total - target) <= rule.tolerance
+    return ok, detail
+
+
 def _skipped(
     base: dict[str, Any], level: Literal["row", "batch"], detail: Detail, why: str
 ) -> RuleResult:
@@ -425,7 +488,9 @@ def evaluate(
     union: set[int] = set()
     for rule in rules:
         base: dict[str, Any] = {"rule_id": rule.id, "type": rule.type, "severity": rule.severity}
-        level: Literal["row", "batch"] = "batch" if isinstance(rule, Freshness) else "row"
+        level: Literal["row", "batch"] = (
+            "batch" if isinstance(rule, Freshness | SumEquals) else "row"
+        )
         detail: dict[str, str | int | float | None] = {"column": ", ".join(_columns(rule))}
 
         missing = [c for c in _columns(rule) if c not in index]
@@ -451,6 +516,19 @@ def evaluate(
                 cells = col(rule.column)
                 evaluated = sum(v is not None for v in cells)
                 failed = [i for i, v in enumerate(cells) if v is not None and not _matches(pat, v)]
+            case Expression():
+                evaluated, failed = _expression(rule, {c: col(c) for c in rule.columns}, n_rows)
+            case SumEquals():
+                allowed = refs.get(str(reference_key(rule)))
+                if allowed is None:
+                    results.append(_skipped(base, level, detail, "référentiel non fourni"))
+                    continue
+                checked = _sum_equals(rule, col(rule.column), allowed)
+                if checked is None:
+                    results.append(_skipped(base, level, detail, "référentiel non numérique"))
+                    continue
+                ok, detail = checked
+                evaluated = 1
             case Reference():
                 key = reference_key(rule)
                 allowed = rule.values if key is None else refs.get(key)
@@ -473,6 +551,8 @@ def evaluate(
         status: Status = "passed" if failed_count == 0 else "failed"
         if status == "passed":
             msg = "Règle respectée."
+        elif isinstance(rule, SumEquals):
+            msg = f"Total de la colonne {rule.column} différent du référentiel (hors tolérance)."
         elif level == "batch":
             msg = f"Lot trop ancien ou sans date exploitable (colonne {detail['column']})."
         else:
