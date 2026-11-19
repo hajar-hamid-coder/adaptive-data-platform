@@ -1,0 +1,10 @@
+# Quarantaine dynamique (P4-04). Seuils provisoires H-02, en part de lignes en échec
+# (règles de sévérité error uniquement ; warn ne met jamais en quarantaine).
+#   taux < alert_rate                 : quarantaine des lignes en échec, le reste passe
+#   alert_rate <= taux < batch_rate   : idem (le lot n'est pas bloqué) + alerte "lot dégradé"
+#   taux >= batch_rate                : lot entier isolé
+# Le lot entier est aussi isolé si son score qualité (P4-03) < critical_score
+# ou si une règle de lot de sévérité error échoue (fraîcheur).
+alert_rate: 0.05
+batch_rate: 0.20
+critical_score: 60   # null pour désactiver

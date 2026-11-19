@@ -44,3 +44,4 @@
 - 2026-11-12 — P4-01 règles qualité (6 types en union discriminée, sévérité error|warn, indices de lignes jamais de valeurs, regex validées par AST re._parser, config/quality/population.yaml + référentiel régions MA) (ebc6030).
 - 2026-11-19 — P4-02 anomalies (zscore, robust MAD, IQR) + dérive (PSI, KS exact, catégoriel) en Python pur ; PSI biaisé à n=200 avec 10 classes, test des 95 % à n=1000 (391226d).
 - 2026-11-19 — P4-03 score qualité (4 dimensions pondérées, n/a renormalisé, quality_score append-only idempotent, migration 0004, column_name '' pour le lot).
+- 2026-11-19 — P4-04 quarantaine (décision pure, bande 5-20 % = lignes + alerte, ≥20 % ou score<60 ou règle lot error = lot isolé ; stockage objet JSON append-only, release --by/--reason, replay ; CLI adp quarantine). Non branchée à Dagster.
