@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qualité des données - ADP</title>
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="mockup.css">
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<div class="app">
+<aside class="side">
+<a class="brand" href="index.html">ADP <span>Plateforme de données</span></a>
+<nav aria-label="Navigation principale"><ul class="nav"><li><a href="pipeline.html">Pipeline</a></li><li><a href="qualite.html" aria-current="page">Qualité</a></li><li><a href="schemas.html">Schémas</a></li><li><a href="revue-mapping.html">Revue du mapping</a></li></ul></nav>
+</aside>
+<main id="contenu">
+<header class="top">
+<div><h1>Qualité des données</h1><p class="muted sub">Scores, règles en échec, quarantaine et rapports. Source : GET /quality/*</p></div>
+<button class="btn" type="button" data-theme-toggle aria-pressed="false">Thème clair / sombre</button>
+</header>
+<section class="grid" aria-label="Scores">
+<div class="card kpi"><div class="label">Score global (clients_crm)</div><div class="value">81,2</div><div class="hint"><span class="badge warn">Sous le seuil de 90</span></div></div>
+<div class="card kpi"><div class="label">Complétude</div><div class="value">88,4</div></div>
+<div class="card kpi"><div class="label">Validité</div><div class="value">79,0</div></div>
+<div class="card kpi"><div class="label">Unicité</div><div class="value">99,6</div></div>
+</section>
+<div class="filters card"><div class="field"><label for="src">Source</label><select id="src"><option>clients_crm</option><option>ventes_boutiques</option></select></div>
+<div class="field"><label for="run">Run</label><select id="run"><option>run_20261119_0540</option><option>run_20261118_0540</option></select></div></div>
+<section class="grid two">
+<div class="card"><header><h2>Score par colonne</h2><span class="muted small">Seuil de promotion : 90</span></header>
+<div class="table-wrap" role="region" aria-label="Scores par colonne" tabindex="0"><table><caption class="small">Texte, barre et valeur : l'état ne dépend pas de la couleur</caption><thead><tr><th scope="col">Colonne</th><th scope="col">Score</th><th scope="col" class="num">Lignes en échec</th></tr></thead><tbody><tr><th scope="row"><code>montant_ttc</code></th><td><div class="bar "><div class="track" role="img" aria-label="Score 97.8 sur 100"><div class="fill" style="width:97.8%"></div></div><b>97.8</b></div></td><td class="num">88</td></tr><tr><th scope="row"><code>date_vente</code></th><td><div class="bar "><div class="track" role="img" aria-label="Score 95.1 sur 100"><div class="fill" style="width:95.1%"></div></div><b>95.1</b></div></td><td class="num">196</td></tr><tr><th scope="row"><code>code_postal</code></th><td><div class="bar warn"><div class="track" role="img" aria-label="Score 84.3 sur 100"><div class="fill" style="width:84.3%"></div></div><b>84.3</b></div></td><td class="num">628</td></tr><tr><th scope="row"><code>email</code></th><td><div class="bar error"><div class="track" role="img" aria-label="Score 71.5 sur 100"><div class="fill" style="width:71.5%"></div></div><b>71.5</b></div></td><td class="num">1140</td></tr><tr><th scope="row"><code>id_client</code></th><td><div class="bar "><div class="track" role="img" aria-label="Score 99.6 sur 100"><div class="fill" style="width:99.6%"></div></div><b>99.6</b></div></td><td class="num">16</td></tr><tr><th scope="row"><code>taux_remise</code></th><td><div class="bar error"><div class="track" role="img" aria-label="Score 62.0 sur 100"><div class="fill" style="width:62.0%"></div></div><b>62.0</b></div></td><td class="num">1520</td></tr></tbody></table></div></div>
+<div class="card"><header><h2>Règles en échec</h2><span class="muted small">Rapport run_20261119_0540</span></header>
+<div class="table-wrap" role="region" aria-label="Règles en échec" tabindex="0"><table><thead><tr><th scope="col">Règle</th><th scope="col">Sévérité</th><th scope="col" class="num">Lignes</th></tr></thead><tbody><tr><th scope="row"><code>not_null:email</code></th><td><span class="badge error">Bloquante</span></td><td class="num">118</td></tr><tr><th scope="row"><code>format:code_postal</code></th><td><span class="badge warn">Avertissement</span></td><td class="num">64</td></tr><tr><th scope="row"><code>range:taux_remise</code></th><td><span class="badge error">Bloquante</span></td><td class="num">39</td></tr><tr><th scope="row"><code>unique:id_client</code></th><td><span class="badge info">Information</span></td><td class="num">3</td></tr></tbody></table></div>
+<p style="margin-top:12px"><a href="#">Ouvrir le rapport JSON du run</a></p></div>
+</section>
+<section class="card" aria-labelledby="h-q"><header><h2 id="h-q">Quarantaine</h2><span class="muted small">Index et motifs seulement, jamais de valeurs brutes</span></header>
+<div class="table-wrap" role="region" aria-label="Lignes en quarantaine" tabindex="0"><table><caption class="small">GET /quality/quarantine/clients_crm</caption><thead><tr><th scope="col">Lot</th><th scope="col" class="num">Ligne</th><th scope="col">Statut</th><th scope="col">Niveau</th><th scope="col">Motif</th></tr></thead><tbody><tr><td><code>20261119_0540</code></td><td class="num">12</td><td><span class="badge quarantine">En quarantaine</span></td><td>batch</td><td><code>not_null:email</code></td></tr><tr><td><code>20261119_0540</code></td><td class="num">57</td><td><span class="badge quarantine">En quarantaine</span></td><td>row</td><td><code>range:taux_remise</code></td></tr><tr><td><code>20261119_0540</code></td><td class="num">203</td><td><span class="badge info">Rejouée</span></td><td>row</td><td><code>format:code_postal</code></td></tr><tr><td><code>20261118_2200</code></td><td class="num">9</td><td><span class="badge ok">Libérée</span></td><td>row</td><td><code>not_null:email</code></td></tr></tbody></table></div>
+<nav class="pager" aria-label="Pagination"><span class="muted small">1 à 4 sur 412</span><span class="actions"><button class="btn small touch" disabled>Précédent</button><button class="btn small touch">Suivant</button></span></nav></section>
+</main>
+</div>
+
+<script src="theme.js"></script>
+</body>
+</html>
