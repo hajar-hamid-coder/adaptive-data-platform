@@ -8,6 +8,7 @@ from pathlib import Path
 from adp.bronze.lifecycle import apply_archive, load_retention, plan_archive, summarize
 from adp.bronze.store import LocalStore, ObjectStore, S3Store
 from adp.errors import AdpError
+from adp.gold.contract import PRODUCTS_DIR, impact_matrix, load_products, render_bia_markdown
 from adp.mapping.decision import ReviewItem, ReviewQueue
 from adp.mapping.dictionary import load_dictionary
 from adp.quality.quarantine import QuarantineStore, load_quarantine_config
@@ -113,6 +114,21 @@ def _quarantine_replay(args: argparse.Namespace) -> int:
     return 0
 
 
+def _products_validate(args: argparse.Namespace) -> int:
+    products = load_products(args.dir)
+    print(f"{len(products)} data product(s) valide(s) :")
+    for p in products:
+        print(f"  {p.name} v{p.version} [{p.criticality.value}] SLA {p.sla.freshness_hours} h")
+    return 0
+
+
+def _products_bia(args: argparse.Namespace) -> int:
+    md = render_bia_markdown(impact_matrix(load_products(args.dir)))
+    args.output.write_text(md, encoding="utf-8")
+    print(f"Analyse d'impact écrite dans {args.output}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="adp")
     sub = parser.add_subparsers(dest="group", required=True)
@@ -171,6 +187,17 @@ def main(argv: list[str] | None = None) -> int:
             p.add_argument("--config", type=Path, default=QUALITY_DIR / "quarantine.yaml")
             p.add_argument("--as-of", help="date de référence YYYY-MM-DD pour la fraîcheur")
         p.set_defaults(func=func)
+
+    products = sub.add_parser("products", help="contrats de data products").add_subparsers(
+        dest="cmd", required=True
+    )
+    pv = products.add_parser("validate", help="valider config/products/*.yaml")
+    pv.add_argument("--dir", type=Path, default=PRODUCTS_DIR)
+    pv.set_defaults(func=_products_validate)
+    pb = products.add_parser("bia", help="générer la matrice d'impact (docs/bia.md)")
+    pb.add_argument("--dir", type=Path, default=PRODUCTS_DIR)
+    pb.add_argument("--output", type=Path, default=Path("docs/bia.md"))
+    pb.set_defaults(func=_products_bia)
     args = parser.parse_args(argv)
     try:
         return int(args.func(args))

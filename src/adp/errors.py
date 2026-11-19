@@ -44,3 +44,7 @@ class MappingError(AdpError):
 
 class TransformError(MappingError):
     """Invalid transformation rule or value that cannot be transformed (no data value inside)."""
+
+
+class ContractError(ConfigError):
+    """Invalid data product contract (messages name file and field, never input values)."""

@@ -1,0 +1,23 @@
+# Data product Gold (P5-01). Owners/consommateurs fictifs (H-05), domaine H-01.
+name: gdp_indicators
+version: 1.0.0
+description: "PIB annuel en dollars courants par pays (World Bank), format long d'origine."
+sources: [world_bank_gdp]
+columns:
+  - {name: country_code, type: string}
+  - {name: country_name, type: string}
+  - {name: year, type: integer}
+  - {name: indicator_code, type: string}
+  - {name: gdp_current_usd, type: float}
+owner:
+  team: "Équipe Indicateurs économiques"
+  role: "Analytics engineer référent"
+sla:
+  freshness_hours: 744
+criticality: low
+consumers:
+  - name: "Cellule Data science"
+    usage: "Exploration ad hoc et notebooks de modélisation."
+    dependency: soft
+quality:
+  min_score: 80
