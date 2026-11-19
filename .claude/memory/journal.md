@@ -42,3 +42,5 @@
 - 2026-11-12 — Câblage Silver (demandé par l'utilisateur avant validation P3) : silver_<source> en aval de schema_check, schema_version du registre, garde mapping_incomplete, store silver séparé, boucle d'apprentissage bout en bout ; bug auto_apply désapprenant corrigé (a3d98b6).
 - 2026-11-12 — Bilan P3 validé : 9/9 tâches, 697 tests (16 slow), graphe 96 communautés. Silver câblé dans Dagster avant validation. Dette : critère LLM non vérifié (H-09/H-21, pas de clé API), H-22/H-23/H-25, CI GitHub non vérifiée.
 - 2026-11-12 — P4-01 règles qualité (6 types en union discriminée, sévérité error|warn, indices de lignes jamais de valeurs, regex validées par AST re._parser, config/quality/population.yaml + référentiel régions MA) (ebc6030).
+- 2026-11-19 — P4-02 anomalies (zscore, robust MAD, IQR) + dérive (PSI, KS exact, catégoriel) en Python pur ; PSI biaisé à n=200 avec 10 classes, test des 95 % à n=1000 (391226d).
+- 2026-11-19 — P4-03 score qualité (4 dimensions pondérées, n/a renormalisé, quality_score append-only idempotent, migration 0004, column_name '' pour le lot).

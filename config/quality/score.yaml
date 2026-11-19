@@ -1,0 +1,11 @@
+# Pondération du score qualité (P4-03). Poids relatifs, renormalisés sur les dimensions applicables.
+# Colonnes obligatoires : déduites des règles not_null de population.yaml (omettre required_columns).
+weights:
+  completeness: 0.35
+  validity: 0.35
+  uniqueness: 0.20
+  freshness: 0.10
+warn_weight: 0.25   # poids d'une règle de sévérité warn par rapport à error (1.0)
+column_weights:     # défaut 1 ; les clés pèsent plus dans le score du lot
+  region: 2
+  year: 2
