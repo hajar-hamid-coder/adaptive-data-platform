@@ -1,6 +1,6 @@
-# Dashboard ADP (P5-06)
+# Dashboard ADP (P5-06, animations P5-07)
 
-React 18 + Vite + TypeScript strict + Tailwind 3 + TanStack Query + React Router. Design system : `DESIGN.md` ; tokens : `src/styles/tokens.css` (copie identique de `mockups/tokens.css`, vérifiée par un test). Quatre écrans : Pipeline, Qualité, Schémas, Revue du mapping. Aucune police ni script externe.
+React 18 + Vite + TypeScript strict + Tailwind 3 + TanStack Query + React Router. Design system : `DESIGN.md` ; tokens : `src/styles/tokens.css` (copie identique de `mockups/tokens.css`, vérifiée par un test). Quatre écrans : Pipeline, Qualité, Schémas, Revue du mapping. Aucune police ni script externe. Animations sobres avec Framer Motion (`src/motion.tsx`), désactivées sous `prefers-reduced-motion` (voir `DESIGN.md` §2.4).
 
 ## Démarrer en local avec les données de démo
 

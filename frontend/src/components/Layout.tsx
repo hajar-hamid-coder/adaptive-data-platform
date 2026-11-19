@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { Reveal } from "../motion";
 import { useTheme } from "../theme";
 
 const LINKS = [
@@ -10,6 +11,7 @@ const LINKS = [
 
 export function Layout() {
   const { theme, toggle } = useTheme();
+  const { pathname } = useLocation();
   return (
     <>
       <a className="skip" href="#contenu">
@@ -38,7 +40,9 @@ export function Layout() {
               Thème clair / sombre
             </button>
           </div>
-          <Outlet />
+          <Reveal key={pathname} className="grid min-w-0 content-start gap-6">
+            <Outlet />
+          </Reveal>
         </main>
       </div>
     </>

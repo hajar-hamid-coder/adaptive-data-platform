@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
+import { MotionProvider } from "./motion";
 import { Pipeline } from "./pages/Pipeline";
 import { Quality } from "./pages/Quality";
 import { Review } from "./pages/Review";
@@ -23,7 +24,9 @@ export const makeClient = (): QueryClient => new QueryClient({ defaultOptions: {
 export function App() {
   return (
     <QueryClientProvider client={makeClient()}>
-      <BrowserRouter>{routes}</BrowserRouter>
+      <MotionProvider>
+        <BrowserRouter>{routes}</BrowserRouter>
+      </MotionProvider>
     </QueryClientProvider>
   );
 }

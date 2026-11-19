@@ -1,6 +1,6 @@
 # Design system ADP : interface de la plateforme de données
 
-Statut : proposition P5-05, à valider à la gate de la phase P5. Hypothèse H-10 : React + Vite + TypeScript + Tailwind, thème sobre clair/sombre, animations sobres (Framer Motion en P5-07).
+Statut : proposition P5-05, à valider à la gate de la phase P5. Hypothèse H-10 : React + Vite + TypeScript + Tailwind, thème sobre clair/sombre, animations sobres (Framer Motion, P5-07).
 Maquettes : `frontend/mockups/index.html` (4 écrans, clair et sombre). Source de vérité des tokens : `frontend/mockups/tokens.css`. Contrastes : `python3 scripts/check_contrast.py` (testé par `tests/test_contrast.py`).
 
 ## 1. Principes
@@ -66,7 +66,11 @@ Correspondance sémantique des métiers : promu = ok ; COMPATIBLE = ok ; REVIEW 
 | Easing | `--adp-ease` = `cubic-bezier(0.2, 0, 0, 1)` |
 | Points de rupture | sm 640 · md 900 (nav latérale ↔ barre haute) · lg 1200 px |
 
-Animations autorisées : survol/focus (fast), transition de largeur d'une barre (slow), apparition de toast et de panneau (base), squelette de chargement. Interdit : rebonds, parallaxe, animation en boucle hors squelette. Sous `prefers-reduced-motion: reduce` : toute animation et transition est désactivée (déjà en place dans les maquettes ; en React, `useReducedMotion()` de Framer Motion).
+Animations autorisées : survol/focus (fast), changement de couleur d'un badge (fast), apparition (fondu + 6 px, base) d'une page, d'une carte KPI, d'un tableau ou d'un état vide, révélation gauche-droite d'une barre de score (slow), apparition de toast et de panneau (base), squelette de chargement. Interdit : rebonds, parallaxe, animation en boucle hors squelette, toute animation d'interaction > 300 ms, tout déplacement de mise en page (CLS = 0). Seuls `opacity`, `transform` et `clip-path` sont animés.
+
+**Implémentation React (P5-07)** : `src/motion.tsx` (Framer Motion 14.11.1 en `LazyMotion`/`domAnimation`, ~ 50 ko en moins qu'un import complet). `useReducedMotion()` lit `matchMedia('(prefers-reduced-motion: reduce)')` et suit les changements ; sans `matchMedia` on n'anime pas. `MotionProvider` (racine de l'app) donne ce résultat à Framer (`MotionConfig reducedMotion="always"|"never"`) : une seule source de vérité. Composants : `Reveal` (page, KPI, tableau, état vide) et `Fill` (barre de score). Les durées et l'easing reprennent les tokens (`DUR`, `EASE`). Pas d'animation de sortie (la navigation n'est jamais retardée).
+
+Sous `prefers-reduced-motion: reduce` : aucune translation ni échelle ni parallaxe ; les composants sont rendus directement dans leur état final (durée 0, `initial={false}`) ; les squelettes n'ont plus de pulsation ; les transitions CSS sont coupées (règle globale de `index.css`). La valeur d'une barre est toujours lisible (nombre + `aria-label`), animation ou non. Le thème enregistré est appliqué par un script inline avant le premier rendu (pas de flash).
 
 ### 2.5 Table de correspondance Tailwind (P5-06)
 

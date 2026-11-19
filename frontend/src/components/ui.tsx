@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { errorMessage } from "../api/client";
 import type { Tone } from "../lib";
 import { fmtInt, fmtScore, scoreTone } from "../lib";
+import { Fill, Reveal } from "../motion";
 
 export function Badge({ tone, children }: { tone: Tone; children: ReactNode }) {
   return <span className={`badge ${tone}`}>{children}</span>;
@@ -15,7 +16,7 @@ export function ScoreBar({ value, label = "Score", unit = "sur 100" }: { value: 
   return (
     <div className={`bar ${tone === "ok" ? "" : tone}`}>
       <div className="track" role="img" aria-label={`${label} ${fmtScore(value)} ${unit}`}>
-        <div className="fill" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+        <Fill percent={Math.max(0, Math.min(100, value))} />
       </div>
       <b>{fmtScore(value)}</b>
     </div>
@@ -24,11 +25,11 @@ export function ScoreBar({ value, label = "Score", unit = "sur 100" }: { value: 
 
 export function Kpi({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
   return (
-    <div className="card kpi">
+    <Reveal className="card kpi">
       <div className="label">{label}</div>
       <div className="value">{value}</div>
       {hint && <div className="hint muted">{hint}</div>}
-    </div>
+    </Reveal>
   );
 }
 
@@ -44,7 +45,7 @@ export function PageHeader({ title, sub }: { title: string; sub: string }) {
 export function TableRegion({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="table-wrap" role="region" aria-label={label} tabIndex={0}>
-      {children}
+      <Reveal>{children}</Reveal>
     </div>
   );
 }
@@ -70,7 +71,9 @@ export function Pager({ offset, limit, total, onChange, noun }: { offset: number
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="empty">{children}</div>;
+  return (
+    <Reveal className="empty">{children}</Reveal>
+  );
 }
 
 /** Loading (skeleton + aria-live), error (role=alert + retry), empty, then content. */
