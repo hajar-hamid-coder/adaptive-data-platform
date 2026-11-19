@@ -207,13 +207,14 @@ def _token_sim(a: str, b: str, cfg: DiffConfig) -> float:
     short, long = sorted((a, b), key=len)
     if _is_abbrev(short, long):
         return cfg.abbreviation_similarity
-    r = SequenceMatcher(None, a, b).ratio()
+    x, y = sorted((a, b))  # ratio() depends on argument order
+    r = SequenceMatcher(None, x, y).ratio()
     return r if r >= cfg.token_fuzzy_min else 0.0
 
 
 def name_similarity(a: str, b: str, cfg: DiffConfig) -> float:
     """Token-alignment similarity of two column names in [0, 1] (see module doc)."""
-    ta, tb = _tokens(a), _tokens(b)
+    ta, tb = sorted((_tokens(a), _tokens(b)))  # canonical order: greedy tie-breaks stay symmetric
     if ta and "".join(ta) == "".join(tb):
         return 1.0
     wa = [cfg.generic_token_weight if t in cfg.generic_tokens else 1.0 for t in ta]
