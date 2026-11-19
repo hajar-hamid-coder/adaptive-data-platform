@@ -1,6 +1,7 @@
 """`adp` command line."""
 
 import argparse
+import json
 import sys
 from datetime import date
 from pathlib import Path
@@ -146,6 +147,19 @@ def _gold_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def _catalog_export(args: argparse.Namespace) -> int:
+    from adp.catalog.openlineage import export_openlineage
+    from adp.catalog.runtime import default_catalog
+
+    text = json.dumps(export_openlineage(default_catalog()), indent=2, ensure_ascii=False)
+    if args.output:
+        args.output.write_text(text + "\n", encoding="utf-8")
+        print(f"Export OpenLineage-lite écrit dans {args.output}")
+    else:
+        print(text)
+    return 0
+
+
 def _api_serve(args: argparse.Namespace) -> int:
     import uvicorn
 
@@ -230,6 +244,12 @@ def main(argv: list[str] | None = None) -> int:
     gb.add_argument("--gold-dir", type=Path, help="racine du store gold_ready (défaut : config)")
     gb.add_argument("--out-dir", type=Path, help="racine de sortie (défaut : même store)")
     gb.set_defaults(func=_gold_build)
+    cat = sub.add_parser("catalog", help="catalogue et lignage").add_subparsers(
+        dest="cmd", required=True
+    )
+    ce = cat.add_parser("export", help="exporter le lignage (OpenLineage-lite JSON)")
+    ce.add_argument("--output", type=Path, help="fichier de sortie (défaut : stdout)")
+    ce.set_defaults(func=_catalog_export)
     api = sub.add_parser("api", help="API HTTP en lecture seule").add_subparsers(
         dest="cmd", required=True
     )

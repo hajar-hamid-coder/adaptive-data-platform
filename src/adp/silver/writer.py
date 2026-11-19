@@ -59,6 +59,7 @@ class SilverManifest:
     rows_in: int | None = None
     rows_deduped: int | None = None
     rows_rejected: int | None = None
+    bronze_batch: str | None = None  # Bronze parquet path this batch came from (lineage)
     skipped: bool = False
 
 
@@ -128,6 +129,7 @@ def write_silver(
     rows_in: int | None = None,
     rows_deduped: int | None = None,
     rows_rejected: int | None = None,
+    bronze_batch: str | None = None,
 ) -> SilverManifest:
     """Write a typed Silver batch once; replaying the same logical batch is a no-op."""
     _check_source(source)
@@ -173,7 +175,7 @@ def write_silver(
         row_count=len(typed), columns=columns, schema=dict(zip(columns, ddl_types, strict=True)),
         parquet_path=pq_key, ingested_at=ts.astimezone(UTC).isoformat(), size_bytes=len(blob),
         dictionary_hash=dhash, rows_in=rows_in, rows_deduped=rows_deduped,
-        rows_rejected=rows_rejected,
+        rows_rejected=rows_rejected, bronze_batch=bronze_batch,
     )  # fmt: skip
     body = {k: v for k, v in asdict(manifest).items() if k != "skipped"}
     if not store.put_if_absent(mf_key, json.dumps(body, indent=2).encode()):

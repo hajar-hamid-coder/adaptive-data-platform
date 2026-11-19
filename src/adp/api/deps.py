@@ -2,7 +2,7 @@
 
 import hashlib
 import hmac
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any
@@ -12,6 +12,7 @@ from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 
 from adp.bronze.store import ObjectStore
+from adp.catalog.model import Catalog
 from adp.config import Settings
 from adp.gold.contract import DataProduct
 from adp.quality.quarantine import QuarantineStore
@@ -34,6 +35,7 @@ class Deps:
     scores: QualityScoreStore
     quarantine: QuarantineStore
     reports_dir: Path
+    catalog: Callable[[], Catalog] | None = None  # None: contracts only (partial lineage)
 
 
 def get_deps(request: Request) -> Deps:

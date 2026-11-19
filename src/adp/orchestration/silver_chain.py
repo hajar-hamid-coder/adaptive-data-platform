@@ -160,6 +160,7 @@ def run_silver_chain(
     store: ObjectStore,
     run_id: str,
     semantic_dir: Path = SEMANTIC,
+    bronze_path: str | None = None,
 ) -> SilverChainResult:
     """Map, clean, deduplicate and write one approved Bronze batch (pure of Dagster).
 
@@ -192,7 +193,7 @@ def run_silver_chain(
     manifest = write_silver(
         (cleaned.columns, rows), source=spec.name, schema_version=schema_version,
         run_id=run_id, store=store, dictionary=dictionary, rows_in=len(table.rows),
-        rows_deduped=deduped, rows_rejected=len(cleaned.rejects),
+        rows_deduped=deduped, rows_rejected=len(cleaned.rejects), bronze_batch=bronze_path,
     )  # fmt: skip
     return SilverChainResult(
         status="written", outcome=out, rows_in=len(table.rows), rows_cleaned=len(cleaned.rows),
@@ -258,7 +259,7 @@ def make_silver_asset(
                 read_bronze_table(context.resources.store, path), spec=spec,
                 schema_version=version, dictionary=dictionary, mapper=factory(dictionary),
                 queue=ReviewQueue(context.resources.schema_registry.engine(), dictionary),
-                store=context.resources.silver_store, run_id=run_id,
+                store=context.resources.silver_store, run_id=run_id, bronze_path=path,
             )  # fmt: skip
         except TransformError as exc:
             raise Failure(

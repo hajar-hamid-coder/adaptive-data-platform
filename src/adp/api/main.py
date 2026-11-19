@@ -21,7 +21,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from adp.api.deps import Deps, key_digests, require_key
-from adp.api.routers import health, products, quality, runs, schemas
+from adp.api.routers import catalog, health, products, quality, runs, schemas
+from adp.catalog.runtime import default_catalog
 from adp.config import Settings, get_settings
 from adp.errors import AdpError
 from adp.gold.contract import load_products
@@ -39,6 +40,7 @@ TAGS = [
     {"name": "schemas", "description": "Registre de schémas / schema registry"},
     {"name": "quality", "description": "Qualité et quarantaine / quality and quarantine"},
     {"name": "runs", "description": "Exécutions / runs"},
+    {"name": "catalog", "description": "Catalogue et lignage / catalog and lineage"},
 ]
 
 
@@ -51,6 +53,7 @@ def default_deps(settings: Settings) -> Deps:
         scores=QualityScoreStore(engine),
         quarantine=QuarantineStore(build_quarantine_store()),
         reports_dir=Path(settings.adp_reports_dir),
+        catalog=default_catalog,
     )
 
 
@@ -98,6 +101,6 @@ def create_app(settings: Settings | None = None, deps: Deps | None = None) -> Fa
 
     app.include_router(health.router)
     protected = [Depends(require_key)]
-    for mod in (products, schemas, quality, runs):
+    for mod in (products, schemas, quality, runs, catalog):
         app.include_router(mod.router, dependencies=protected)
     return app
