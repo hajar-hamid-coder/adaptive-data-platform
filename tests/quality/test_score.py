@@ -405,7 +405,7 @@ def test_validation_and_append_only_api(store: QualityScoreStore) -> None:
         with pytest.raises(QualityError):
             store.history("src", limit=bad_limit)  # type: ignore[arg-type]
     public = {n for n in dir(store) if not n.startswith("_")}
-    assert public == {"save", "latest", "history", "column_history"}
+    assert public == {"save", "latest", "history", "column_history", "batch_scores"}
 
 
 def test_no_sentinel_in_persisted_rows_and_logs(store: QualityScoreStore) -> None:

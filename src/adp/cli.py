@@ -146,6 +146,13 @@ def _gold_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def _api_serve(args: argparse.Namespace) -> int:
+    import uvicorn
+
+    uvicorn.run("adp.api.main:create_app", factory=True, host=args.host, port=args.port)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="adp")
     sub = parser.add_subparsers(dest="group", required=True)
@@ -223,6 +230,13 @@ def main(argv: list[str] | None = None) -> int:
     gb.add_argument("--gold-dir", type=Path, help="racine du store gold_ready (défaut : config)")
     gb.add_argument("--out-dir", type=Path, help="racine de sortie (défaut : même store)")
     gb.set_defaults(func=_gold_build)
+    api = sub.add_parser("api", help="API HTTP en lecture seule").add_subparsers(
+        dest="cmd", required=True
+    )
+    srv = api.add_parser("serve", help="lancer l'API (uvicorn)")
+    srv.add_argument("--host", default="127.0.0.1")
+    srv.add_argument("--port", type=int, default=8000)
+    srv.set_defaults(func=_api_serve)
     args = parser.parse_args(argv)
     try:
         return int(args.func(args))

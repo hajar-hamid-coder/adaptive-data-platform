@@ -482,6 +482,23 @@ class QualityScoreStore:
         rows = self._read(source_name, "batch", "", 1)
         return rows[0] if rows else None
 
+    def batch_scores(
+        self, source_name: str | None = None, run_id: str | None = None
+    ) -> list[StoredScore]:
+        """Batch-scope scores, optionally filtered by source and/or run, newest first."""
+        t = quality_score
+        stmt = select(t).where(t.c.scope == "batch")
+        if source_name is not None:
+            stmt = stmt.where(t.c.source_name == _check_source(source_name))
+        if run_id is not None:
+            stmt = stmt.where(t.c.run_id == run_id)
+        try:
+            with self._engine.connect() as conn:
+                rows = conn.execute(stmt.order_by(t.c.created_at.desc(), t.c.id.desc()))
+                return [_stored(r) for r in rows]
+        except SQLAlchemyError as e:
+            raise QualityError(f"lecture du score impossible ({type(e).__name__})") from e
+
     def history(self, source_name: str, limit: int = 50) -> list[StoredScore]:
         """Batch scores, newest first."""
         return self._read(source_name, "batch", "", limit)

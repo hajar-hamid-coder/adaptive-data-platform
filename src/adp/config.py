@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     adp_llm_model: str = "claude-haiku-5-5"
     adp_llm_cache_dir: Path = Path("data/llm_cache")
 
+    # API (P5-03): comma-separated keys (raw or `sha256:<hex>`), empty = every protected route 401
+    adp_api_keys: SecretStr = SecretStr("")
+    adp_api_cors_origins: str = ""  # comma-separated; empty = CORS disabled
+    adp_reports_dir: Path = Path("data/reports")
+
     def postgres_url(self, database: str | None = None) -> URL:
         """SQLAlchemy URL of the metadata Postgres (`database` overrides `postgres_db`)."""
         return URL.create(
