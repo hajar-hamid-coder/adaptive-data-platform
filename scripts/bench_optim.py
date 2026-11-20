@@ -153,6 +153,7 @@ def main() -> int:
     ap.add_argument("--warmup", type=int, default=5)
     ap.add_argument("--requests", type=int, default=120, help="workload size for the journal")
     ap.add_argument("--output", type=Path, default=ROOT / "docs" / "optimisation.md")
+    ap.add_argument("--json", type=Path, default=None, help="écrit aussi les résultats en JSON")
     ap.add_argument("--worker", action="store_true")
     ap.add_argument("--work")
     ap.add_argument("--url")
@@ -260,6 +261,19 @@ def main() -> int:
                    "mesures confondues",
                    f"Durée totale du benchmark : {time.perf_counter() - t0:.0f} s"),
         )  # fmt: skip
+        if args.json:
+            args.json.write_text(json.dumps({
+                "rec_id": rec.id, "type": rec.type, "target": rec.target, "url": url,
+                "rows": REGIONS * YEARS, "passes": args.passes, "reps": args.reps,
+                "warmup": args.warmup, "threads": sorted(threads),
+                "p95_before_ms": med["before"], "p95_after_ms": med["after"],
+                "sd_p95_before_ms": sd["before"], "sd_p95_after_ms": sd["after"],
+                "p50_before_ms": pooled["before"].p50, "p50_after_ms": pooled["after"].p50,
+                "n_before": pooled["before"].n, "n_after": pooled["after"].n,
+                "gain_p95": g, "target_gain": TARGET_GAIN, "equivalent": eq,
+                "verdict": verdict, "storage_bytes": res.bytes,
+                "duration_s": time.perf_counter() - t0,
+            }), encoding="utf-8")
         args.output.write_text(render([entry]), encoding="utf-8")
         print(f"Rapport écrit dans {args.output.relative_to(ROOT)} ; durée totale "
               f"{time.perf_counter() - t0:.0f} s")  # fmt: skip

@@ -1,0 +1,204 @@
+{
+ "meta": {
+  "date": "2000-01-01 00:00 UTC",
+  "commit": "abc123def456",
+  "config_fingerprint": "0123456789ab",
+  "rows": 100000,
+  "seed": 42,
+  "reps": 3,
+  "total_s": 10,
+  "hardware": {
+   "os": "TestOS 1.0 (x86)",
+   "cpu": "Test CPU",
+   "cpu_count": 4,
+   "ram_gib": 8.0,
+   "python": "3.12.0",
+   "duckdb_threads": 4,
+   "libs": {
+    "duckdb": "1.0",
+    "pydantic": "2.0"
+   }
+  }
+ },
+ "benches": {
+  "ingest": {
+   "status": "ok",
+   "command": "uv run python scripts/bench.py --only ingest --rows 100000 --seed 42 --reps 3",
+   "duration_s": 5.0,
+   "data": {
+    "rows": 100000,
+    "bytes": 2800000,
+    "time": {
+     "n": 3,
+     "median": 2.0,
+     "mean": 2.0,
+     "stdev": 0.02,
+     "iqr": 0.04,
+     "p95": 2.2,
+     "p99": 2.4,
+     "min": 1.8,
+     "max": 2.4
+    },
+    "rows_per_s": 50000.0,
+    "mb_per_s": 1.4,
+    "times_s": [
+     2.0,
+     2.0,
+     2.0
+    ]
+   }
+  },
+  "silver": {
+   "status": "ok",
+   "command": "uv run python scripts/bench.py --only silver --rows 100000 --seed 42 --reps 3",
+   "duration_s": 9.0,
+   "data": {
+    "rows": 100000,
+    "bytes": 2800000,
+    "time": {
+     "n": 3,
+     "median": 4.0,
+     "mean": 4.0,
+     "stdev": 0.04,
+     "iqr": 0.08,
+     "p95": 4.4,
+     "p99": 4.8,
+     "min": 3.6,
+     "max": 4.8
+    },
+    "rows_per_s": 25000.0,
+    "mb_per_s": 0.7,
+    "rows_cleaned": 99000,
+    "rows_deduped": 1000,
+    "rows_rejected": 0
+   }
+  },
+  "gate": {
+   "status": "ok",
+   "command": "uv run python scripts/bench.py --only gate --rows 100000 --seed 42 --reps 3",
+   "duration_s": 1.0,
+   "data": {
+    "sizes": [
+     {
+      "rows": 10000,
+      "profile_s": {
+       "n": 3,
+       "median": 0.05,
+       "mean": 0.05,
+       "stdev": 0.0005,
+       "iqr": 0.001,
+       "p95": 0.05500000000000001,
+       "p99": 0.06,
+       "min": 0.045000000000000005,
+       "max": 0.06
+      },
+      "diff_s": {
+       "n": 3,
+       "median": 0.0001,
+       "mean": 0.0001,
+       "stdev": 1e-06,
+       "iqr": 2e-06,
+       "p95": 0.00011000000000000002,
+       "p99": 0.00012,
+       "min": 9e-05,
+       "max": 0.00012
+      },
+      "profile_rows_per_s": 200000.0,
+      "changes": 3
+     },
+     {
+      "rows": 100000,
+      "profile_s": {
+       "n": 3,
+       "median": 0.5,
+       "mean": 0.5,
+       "stdev": 0.005,
+       "iqr": 0.01,
+       "p95": 0.55,
+       "p99": 0.6,
+       "min": 0.45,
+       "max": 0.6
+      },
+      "diff_s": {
+       "n": 3,
+       "median": 0.0001,
+       "mean": 0.0001,
+       "stdev": 1e-06,
+       "iqr": 2e-06,
+       "p95": 0.00011000000000000002,
+       "p99": 0.00012,
+       "min": 9e-05,
+       "max": 0.00012
+      },
+      "profile_rows_per_s": 200000.0,
+      "changes": 3
+     }
+    ]
+   }
+  },
+  "quality": {
+   "status": "ok",
+   "command": "uv run python scripts/bench.py --only quality --rows 100000 --seed 42 --reps 3",
+   "duration_s": 1.0,
+   "data": {
+    "rows": 100000,
+    "n_rules": 7,
+    "evaluate_s": {
+     "n": 3,
+     "median": 0.1,
+     "mean": 0.1,
+     "stdev": 0.001,
+     "iqr": 0.002,
+     "p95": 0.11000000000000001,
+     "p99": 0.12,
+     "min": 0.09000000000000001,
+     "max": 0.12
+    },
+    "score_s": {
+     "n": 3,
+     "median": 0.01,
+     "mean": 0.01,
+     "stdev": 0.0001,
+     "iqr": 0.0002,
+     "p95": 0.011000000000000001,
+     "p99": 0.012,
+     "min": 0.009000000000000001,
+     "max": 0.012
+    },
+    "rows_per_s_evaluate": 1000000.0,
+    "rows_per_s_total": 909090.0,
+    "failed_rows": 1000
+   }
+  },
+  "compaction": {
+   "status": "failed",
+   "command": "uv run python scripts/bench.py --only compaction --seed 42 --reps 3",
+   "error": "RuntimeError: boom"
+  },
+  "optim": {
+   "status": "ok",
+   "command": "uv run python scripts/bench.py --only optim",
+   "duration_s": 200.0,
+   "data": {
+    "rows": 1000000,
+    "passes": 5,
+    "reps": 30,
+    "warmup": 5,
+    "threads": [
+     4
+    ],
+    "url": "/indicators/regional_share",
+    "p95_before_ms": 100.0,
+    "p95_after_ms": 40.0,
+    "sd_p95_before_ms": 2.0,
+    "sd_p95_after_ms": 1.0,
+    "p50_before_ms": 95.0,
+    "p50_after_ms": 38.0,
+    "gain_p95": 0.6,
+    "target_gain": 0.3,
+    "equivalent": true,
+    "verdict": "PASS"
+   }
+  }
+ }
+}
