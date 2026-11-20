@@ -1,8 +1,18 @@
-# Rétention Bronze : un lot dont ingestion_date < aujourd'hui - retention_days est archivé
+# Rétention (P1-08, étendue P6-06).
+# Bronze : un lot dont ingestion_date < aujourd'hui - retention_days est archivé
 # (déplacé sous archive_prefix, jamais supprimé ni réécrit).
+# P6-06 : suppressions objet par objet, DRY-RUN par défaut, journalisées (chemin + raison).
 default:
   retention_days: 90
   archive_prefix: _archive
+  enabled: true             # interrupteur de config (env ADP_RETENTION_DISABLED=1 : arrêt immédiat)
+  compaction_grace_days: 7  # fichiers remplacés par une compaction, conservés ce délai
+  gold_opt_days: 30         # artefacts d'optimisation non servis
+  quarantine_days: 180      # lots de quarantaine entièrement résolus (relâchés/rejoués)
+  max_deletions: 500        # plafond par passe ; au-delà, refus sans --confirm-over-cap
+  max_fraction: 0.5         # part max d'un périmètre supprimable par passe, idem
+  schedule_apply: false     # jobs planifiés : dry-run tant que false
 sources:
   world_bank_gdp:
     retention_days: 365
+    # hold: true            # gel légal : rien n'est archivé ni supprimé pour cette source

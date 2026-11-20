@@ -38,6 +38,10 @@ class ObjectStore(Protocol):
         identical content, src is simply removed; different content raises IngestionError."""
         ...
 
+    def delete(self, key: str) -> None:
+        """Remove ONE object (never a prefix); a missing key is a no-op."""
+        ...
+
 
 class LocalStore:
     """Directory-backed store; atomic via temp file + hard link (fails if target exists)."""
@@ -78,6 +82,12 @@ class LocalStore:
                 msg = f"move {src} -> {dst}: destination exists with other content"
                 raise IngestionError(msg) from None
         s.unlink()
+
+    def delete(self, key: str) -> None:
+        target = (self.root / key).resolve()
+        if not target.is_relative_to(self.root.resolve()) or target == self.root.resolve():
+            raise IngestionError(f"delete {key}: key outside the store")
+        target.unlink(missing_ok=True)
 
 
 def _sign(key: bytes, msg: str) -> bytes:

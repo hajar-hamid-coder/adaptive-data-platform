@@ -1,0 +1,8 @@
+# Compaction des petits fichiers Parquet (P6-06). Portée : Bronze et Silver ; jamais Gold.
+enabled: true
+small_bytes: 8388608       # un fichier plus petit est candidat (8 Mio)
+target_bytes: 134217728    # taille cible d'un fichier compacté (128 Mio)
+min_files: 2               # pas de compaction sous ce nombre de fichiers par groupe
+min_age_days: 7            # partitions ingestion_date plus récentes que ça : intactes
+lock_ttl_seconds: 3600     # un verrou plus ancien est considéré périmé (crash)
+schedule_apply: false      # jobs planifiés : dry-run tant que false

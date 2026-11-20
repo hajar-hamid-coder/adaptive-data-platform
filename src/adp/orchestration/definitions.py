@@ -6,6 +6,7 @@ from pathlib import Path
 from dagster import Definitions, definitions
 
 from adp.orchestration.ingestion import build_store, make_bronze_assets, make_landing_sensor
+from adp.orchestration.maintenance import make_maintenance
 from adp.orchestration.promote_asset import (
     build_gold_store,
     build_quarantine_store,
@@ -22,6 +23,7 @@ def build_definitions(sources_dir: Path | None = None) -> Definitions:
     registry = load_registry(
         sources_dir or Path(os.environ.get("ADP_SOURCES_DIR", "config/sources"))
     )
+    jobs, schedules = make_maintenance()
     return Definitions(
         assets=[
             *make_bronze_assets(registry),
@@ -30,6 +32,8 @@ def build_definitions(sources_dir: Path | None = None) -> Definitions:
             *make_promote_assets(registry),
         ],
         sensors=[make_landing_sensor(registry), make_replay_sensor(registry)],
+        jobs=jobs,
+        schedules=schedules,
         resources={
             "store": build_store(),
             "silver_store": build_silver_store(),

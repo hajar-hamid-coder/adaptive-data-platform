@@ -28,12 +28,21 @@ class _Default(BaseModel):
 
     retention_days: int = Field(default=90, ge=1)
     archive_prefix: str = Field(default="_archive", pattern=r"^[A-Za-z0-9_-]+$")
+    # P6-06 deletion policy (all destructive passes are dry-run unless explicitly applied).
+    enabled: bool = True  # config kill switch (env ADP_RETENTION_DISABLED=1 also stops it)
+    compaction_grace_days: int = Field(default=7, ge=0)  # superseded files kept this long
+    gold_opt_days: int = Field(default=30, ge=1)  # unused optimisation artefacts
+    quarantine_days: int = Field(default=180, ge=1)  # fully resolved quarantine batches
+    max_deletions: int = Field(default=500, ge=1)  # per pass, above = refused without confirm
+    max_fraction: float = Field(default=0.5, gt=0, le=1)  # of the scoped objects, idem
+    schedule_apply: bool = False  # scheduled jobs apply only if true (else dry-run)
 
 
 class _SourceRule(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     retention_days: int = Field(ge=1)
+    hold: bool = False  # legal hold: nothing of this source is archived or deleted
 
 
 class RetentionPolicy(BaseModel):
@@ -47,6 +56,10 @@ class RetentionPolicy(BaseModel):
     def retention_for(self, source: str) -> int:
         rule = self.sources.get(source)
         return rule.retention_days if rule else self.default.retention_days
+
+    def held(self, source: str) -> bool:
+        rule = self.sources.get(source)
+        return bool(rule and rule.hold)
 
 
 def load_retention(path: Path) -> RetentionPolicy:
@@ -105,6 +118,8 @@ def plan_archive(store: ObjectStore, policy: RetentionPolicy, today: date) -> li
         if parsed is None:
             continue
         source, day, stem, name = parsed
+        if policy.held(source):
+            continue
         if day < today - timedelta(days=policy.retention_for(source)):
             entries.append((source, day, stem, name.endswith(".manifest.json"), name, key))
     moves = []

@@ -306,6 +306,58 @@ def _optimize_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def _maint_stores(args: argparse.Namespace) -> dict[str, ObjectStore]:
+    """bronze/silver/gold/quarantine: `--root DIR/<name>` or the configured stores."""
+    from adp.orchestration.ingestion import build_store
+    from adp.orchestration.promote_asset import build_quarantine_store
+    from adp.orchestration.silver_chain import build_silver_store
+
+    if args.root:
+        return {n: LocalStore(args.root / n) for n in ("bronze", "silver", "gold", "quarantine")}
+    return {"bronze": build_store(), "silver": build_silver_store(), "gold": build_gold_store(),
+            "quarantine": build_quarantine_store()}  # fmt: skip
+
+
+def _compact(args: argparse.Namespace) -> int:
+    from adp.optimizer import compaction as cp
+
+    st = _maint_stores(args)
+    apply = args.cmd == "run" and args.apply
+    reports = cp.run_layers(
+        {"bronze": st["bronze"], "silver": st["silver"]}, [st["bronze"], st["silver"], st["gold"]],
+        cp.load_compaction_config(args.config), apply=apply,
+        today=date.fromisoformat(args.today) if args.today else None,
+        by=args.by or "", reason=args.reason or "",
+    )  # fmt: skip
+    for r in reports:
+        print(r.markdown())
+    if args.report:
+        args.report.write_text(json.dumps([r.to_dict() for r in reports], indent=2))
+    if not apply:
+        print("Simulation : aucune écriture (utiliser `run --apply --by ... --reason ...`).")
+    return 0
+
+
+def _retention(args: argparse.Namespace) -> int:
+    from adp.optimizer import retention as rt
+
+    st = _maint_stores(args)
+    apply = args.cmd == "run" and args.apply
+    res = rt.run_retention(
+        {k: st[k] for k in ("bronze", "silver", "gold", "quarantine")},
+        [st["bronze"], st["silver"], st["gold"]], load_retention(args.config), apply=apply,
+        by=args.by or "", reason=args.reason or "", confirm_over_cap=args.confirm_over_cap,
+    )  # fmt: skip
+    for name, r in res.items():
+        print(
+            f"{name} : {r.status}, prévus {r.planned}, supprimés {r.deleted}, ignorés {r.skipped}"
+        )
+        if not apply:
+            for d in r.deletions:
+                print(f"  {d.key}  ({d.reason})")
+    return 0
+
+
 def _api_serve(args: argparse.Namespace) -> int:
     import uvicorn
 
@@ -443,6 +495,42 @@ def main(argv: list[str] | None = None) -> int:
     orp.add_argument("--reps", type=int, default=30)
     orp.add_argument("--limit", type=int, default=50)
     orp.set_defaults(func=_optimize_report)
+    maint = (
+        ("compact", _compact, "compaction des petits fichiers Parquet"),
+        ("retention", _retention, "rétention : suppressions bornées"),
+    )
+    for grp, func, hlp in maint:
+        sp = sub.add_parser(grp, help=hlp).add_subparsers(dest="cmd", required=True)
+        for name in ("plan", "run"):
+            p = sp.add_parser(name, help="simulation" if name == "plan" else "exécution")
+            p.add_argument("--root", type=Path, help="dossier bronze/ silver/ gold/ quarantine/")
+            p.add_argument(
+                "--config",
+                type=Path,
+                default=Path(
+                    "config/compaction.yaml" if grp == "compact" else "config/retention.yaml"
+                ),
+            )
+            if grp == "compact":
+                p.add_argument("--today", help="date de référence YYYY-MM-DD")
+                p.add_argument("--report", type=Path, help="rapport JSON")
+            else:
+                p.add_argument(
+                    "--confirm-over-cap",
+                    action="store_true",
+                    help="lever le plafond de suppression (confirmation explicite)",
+                )
+            if name == "run":
+                p.add_argument(
+                    "--apply",
+                    action="store_true",
+                    help="appliquer (sinon simulation) ; exige --by et --reason",
+                )
+                p.add_argument("--by", help="auteur (obligatoire avec --apply)")
+                p.add_argument("--reason", help="raison (obligatoire avec --apply, journalisée)")
+            else:
+                p.set_defaults(apply=False, by=None, reason=None)
+            p.set_defaults(func=func)
     api = sub.add_parser("api", help="API HTTP en lecture seule").add_subparsers(
         dest="cmd", required=True
     )

@@ -44,7 +44,9 @@ from adp.logging import get_logger
 from adp.observability.audit import AuditStore
 from adp.observability.metrics import Metrics
 from adp.optimizer.usage import UsageEvent, UsageLog, load_usage_config
+from adp.orchestration.ingestion import build_store
 from adp.orchestration.promote_asset import build_gold_store, build_quarantine_store
+from adp.orchestration.silver_chain import build_silver_store
 from adp.quality.quarantine import QuarantineStore
 from adp.quality.score import QualityScoreStore
 from adp.schema.registry import SchemaRegistry, make_engine
@@ -76,6 +78,7 @@ def default_deps(settings: Settings) -> Deps:
         catalog=default_catalog,
         audit=AuditStore(engine),
         usage=UsageLog(load_usage_config()),
+        compaction_stores=(build_store(), build_silver_store()),
     )
 
 
@@ -107,7 +110,9 @@ def create_app(settings: Settings | None = None, deps: Deps | None = None) -> Fa
     app.state.deps = deps if deps is not None else default_deps(settings)
     app.state.key_digests = key_digests(settings)
     audit_store = app.state.deps.audit
-    app.state.metrics = Metrics(audit_store.engine if audit_store else None)
+    app.state.metrics = Metrics(
+        audit_store.engine if audit_store else None, app.state.deps.compaction_stores
+    )
 
     origins = [o.strip() for o in settings.adp_api_cors_origins.split(",") if o.strip()]
     if origins:

@@ -659,6 +659,90 @@
           "sort": "desc"
         }
       }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Compaction : fichiers et taille avant/après",
+      "description": "Dernière passe de compaction par source et couche (périmètre fusionné) : nombre de fichiers et octets avant et après. Alimenté par les rapports écrits dans les magasins Bronze et Silver.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 36,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (source, layer) (adp_compaction_files_before)",
+          "legendFormat": "fichiers avant {{layer}} {{source}}",
+          "range": true,
+          "instant": false
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (source, layer) (adp_compaction_files_after)",
+          "legendFormat": "fichiers après {{layer}} {{source}}",
+          "range": true,
+          "instant": false
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (source, layer) (adp_compaction_bytes_before)",
+          "legendFormat": "octets avant {{layer}} {{source}}",
+          "range": true,
+          "instant": false
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (source, layer) (adp_compaction_bytes_after)",
+          "legendFormat": "octets après {{layer}} {{source}}",
+          "range": true,
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
     }
   ],
   "templating": {

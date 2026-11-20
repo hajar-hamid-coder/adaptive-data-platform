@@ -24,6 +24,10 @@ front. Cela ferme l'hypothèse H-34 (journal de runs persistant).
 | `adp_schema_changes_total` | counter | `source`, `impact` (compatible, review, blocking) |
 | `adp_quarantined_rows_total` | counter | `source` |
 | `adp_batches_promoted_total` | counter | `source` |
+| `adp_compaction_files_before` | gauge (dernière passe) | `source`, `layer` (bronze, silver) |
+| `adp_compaction_files_after` | gauge (dernière passe) | `source`, `layer` |
+| `adp_compaction_bytes_before` | gauge (dernière passe) | `source`, `layer` |
+| `adp_compaction_bytes_after` | gauge (dernière passe) | `source`, `layer` |
 | `adp_api_requests_total` | counter | `route` (gabarit), `method`, `status` |
 
 Jamais de `run_id`, de valeur de donnée ni de chemin brut en label (cardinalité bornée ; route

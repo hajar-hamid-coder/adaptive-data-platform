@@ -10,6 +10,10 @@ Metrics (names and labels; NEVER a data value, a run_id or an unbounded id as a 
                                                       blocking)
 - adp_quarantined_rows_total{source}        counter   rows sent to quarantine
 - adp_batches_promoted_total{source}        counter   distinct batches promoted to Gold
+- adp_compaction_files_before|after{source,layer}  gauge  files of the last compaction pass
+                                                      (scope = merged groups; layer bronze|silver)
+- adp_compaction_bytes_before|after{source,layer}  gauge  bytes, idem (read from the reports the
+                                                      compaction writes in the layer's store)
 - adp_api_requests_total{route,method,status} counter API requests; `route` is the route
                                                       TEMPLATE (/runs/{run_id}), never the raw path
 
@@ -32,8 +36,10 @@ from prometheus_client.registry import Collector
 from sqlalchemy import Engine, case, distinct, func, select
 from sqlalchemy.exc import SQLAlchemyError
 
+from adp.bronze.store import ObjectStore
 from adp.logging import get_logger
 from adp.observability.audit import run_audit, step_audit
+from adp.optimizer.compaction import latest_reports
 
 log = get_logger(__name__)
 BUCKETS_S = (0.05, 0.1, 0.5, 1.0, 5.0, 15.0, 60.0, 300.0)
@@ -112,10 +118,33 @@ class AuditCollector(Collector):
         return [runs, dur, score, changes, quar, promoted]
 
 
+class CompactionCollector(Collector):
+    """Last compaction report per (layer, source), read from the layer stores at each scrape."""
+
+    FIELDS = ("files_before", "files_after", "bytes_before", "bytes_after")
+
+    def __init__(self, stores: Iterable[ObjectStore]) -> None:
+        self._stores = list(stores)
+
+    def collect(self) -> Iterable[Metric]:
+        fam = {f: GaugeMetricFamily(f"adp_compaction_{f}", f"Compaction {f.replace('_', ' ')}",
+                                    labels=["source", "layer"]) for f in self.FIELDS}  # fmt: skip
+        for st in self._stores:
+            try:
+                for r in latest_reports(st):
+                    for f in self.FIELDS:
+                        fam[f].add_metric([r["source"], r["layer"]], int(r[f]))
+            except Exception as exc:  # noqa: BLE001 - the scrape must still answer
+                log.warning("metrics_compaction_unavailable", error=type(exc).__name__)
+        return list(fam.values())
+
+
 class Metrics:
     """A registry with the API request counter and, if given, the audit collector."""
 
-    def __init__(self, engine: Engine | None = None) -> None:
+    def __init__(
+        self, engine: Engine | None = None, compaction_stores: Iterable[ObjectStore] = ()
+    ) -> None:
         self.registry = CollectorRegistry()
         self._api = Counter(
             "adp_api_requests_total", "API requests", ["route", "method", "status"],
@@ -123,6 +152,9 @@ class Metrics:
         )  # fmt: skip
         if engine is not None:
             self.registry.register(AuditCollector(engine))
+        stores = list(compaction_stores)
+        if stores:
+            self.registry.register(CompactionCollector(stores))
 
     def api_request(self, route: str | None, method: str, status: int) -> None:
         """Count a request; `route` is the template (None = no route matched)."""

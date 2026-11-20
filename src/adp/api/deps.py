@@ -40,6 +40,7 @@ class Deps:
     catalog: Callable[[], Catalog] | None = None  # None: contracts only (partial lineage)
     audit: AuditStore | None = None  # None: no audit journal (empty /audit, bare /metrics)
     usage: UsageLog | None = None  # None: analytical requests are not journaled (P6-05)
+    compaction_stores: tuple[ObjectStore, ...] = ()  # Bronze/Silver stores (P6-06 metrics)
 
 
 def note_usage(request: Request, shape: QueryShape, rows: int, total: int, ncols: int) -> None:
