@@ -426,15 +426,15 @@
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 48 | P6-01 | Audit & métriques | Sonnet | P5-03 | Non fait |
-| 49 | P6-02 | Alerting & analyse de cause racine | Opus | P6-01, P3-03 | Non fait |
-| 50 | P6-03 | Auto-rejeu intelligent | Opus | P6-02, P4-04 | Non fait |
-| 51 | P6-04 | Dashboards Grafana as code | Haiku | P6-01 | Non fait |
-| 52 | P6-05 | Auto-optimisation guidée par l'usage | Opus | P6-01, P5-02 | Non fait |
-| 53 | P6-06 | Compaction & rétention automatisées | Sonnet | P6-05 | Non fait |
-| 54 | P6-07 | Sécurité : RBAC, TLS, scans | Sonnet | P5-03 | Non fait |
+| 48 | P6-01 | Audit & métriques | Sonnet | P5-03 | À valider |
+| 49 | P6-02 | Alerting & analyse de cause racine | Opus | P6-01, P3-03 | À valider |
+| 50 | P6-03 | Auto-rejeu intelligent | Opus | P6-02, P4-04 | À valider |
+| 51 | P6-04 | Dashboards Grafana as code | Haiku | P6-01 | À valider |
+| 52 | P6-05 | Auto-optimisation guidée par l'usage | Opus | P6-01, P5-02 | À valider |
+| 53 | P6-06 | Compaction & rétention automatisées | Sonnet | P6-05 | À valider |
+| 54 | P6-07 | Sécurité : RBAC, TLS, scans | Sonnet | P5-03 | À valider |
 | 55 | P6-08 | (Stretch) Hot path en Rust via PyO3 | Opus | P2-03, P6-05 | Non fait |
-| 56 | P6-09 | Benchmarks & rapport de performance | Sonnet | P6-06 | Non fait |
+| 56 | P6-09 | Benchmarks & rapport de performance | Sonnet | P6-06 | À valider |
 
 ### P6-01 — Audit & métriques
 - **Objectif** : Tables d'audit et métriques Prometheus pour chaque run.
