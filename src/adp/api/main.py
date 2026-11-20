@@ -3,8 +3,11 @@
 Decisions:
 - `create_app(settings, deps)`: no I/O at import; `deps` injectable (tests), default built from
   the environment (stores, registry, products).
-- Auth: header `X-API-Key`, keys from `ADP_API_KEYS` hashed in memory (SHA-256), constant-time
-  comparison, no configured key = every protected route answers 401. `/health` stays public.
+- Auth (P6-07, see `adp.api.rbac`): header `X-API-Key`, keys from `ADP_API_KEYS` hashed in memory
+  (SHA-256) with a role (viewer/steward/admin/scraper), constant-time comparison, no configured
+  key = every protected route 401, insufficient role 403. `/health` stays public.
+- Writes: only `POST /review/{id}/approve|reject` (steward+), reusing the CLI review functions;
+  H-33 is lifted for that single endpoint pair, everything else stays read-only.
 - Errors: 401/404/422 generic; domain errors and unexpected ones -> generic 500, details only
   in logs. Bodies never contain secrets or raw quarantined values.
 - Runs: `/runs` keeps listing the quality-score runs (shape consumed by the front); the persistent
@@ -24,7 +27,8 @@ from fastapi import Depends, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from adp.api.deps import Deps, key_digests, require_key, require_scrape_key
+from adp.api.deps import Deps
+from adp.api.rbac import Capability, parse_keys, require_role
 from adp.api.routers import (
     audit,
     catalog,
@@ -33,6 +37,7 @@ from adp.api.routers import (
     metrics,
     products,
     quality,
+    review,
     runs,
     schemas,
 )
@@ -41,6 +46,7 @@ from adp.config import Settings, get_settings
 from adp.errors import AdpError
 from adp.gold.contract import load_products
 from adp.logging import get_logger
+from adp.mapping.decision import ReviewQueue
 from adp.observability.audit import AuditStore
 from adp.observability.metrics import Metrics
 from adp.optimizer.usage import UsageEvent, UsageLog, load_usage_config
@@ -62,6 +68,7 @@ TAGS = [
     {"name": "runs", "description": "Exécutions / runs"},
     {"name": "audit", "description": "Journal d'audit des runs / run audit journal"},
     {"name": "observability", "description": "Métriques Prometheus / Prometheus metrics"},
+    {"name": "review", "description": "Revue humaine des mappings / mapping review (RBAC)"},
     {"name": "catalog", "description": "Catalogue et lignage / catalog and lineage"},
 ]
 
@@ -79,6 +86,7 @@ def default_deps(settings: Settings) -> Deps:
         audit=AuditStore(engine),
         usage=UsageLog(load_usage_config()),
         compaction_stores=(build_store(), build_silver_store()),
+        review=ReviewQueue(engine),
     )
 
 
@@ -108,7 +116,7 @@ def create_app(settings: Settings | None = None, deps: Deps | None = None) -> Fa
         openapi_tags=TAGS,
     )
     app.state.deps = deps if deps is not None else default_deps(settings)
-    app.state.key_digests = key_digests(settings)
+    app.state.key_entries = parse_keys(settings.adp_api_keys.get_secret_value())
     audit_store = app.state.deps.audit
     app.state.metrics = Metrics(
         audit_store.engine if audit_store else None, app.state.deps.compaction_stores
@@ -117,7 +125,7 @@ def create_app(settings: Settings | None = None, deps: Deps | None = None) -> Fa
     origins = [o.strip() for o in settings.adp_api_cors_origins.split(",") if o.strip()]
     if origins:
         app.add_middleware(
-            CORSMiddleware, allow_origins=origins, allow_methods=["GET"],
+            CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST"],
             allow_headers=["X-API-Key"],
         )  # fmt: skip
 
@@ -150,8 +158,13 @@ def create_app(settings: Settings | None = None, deps: Deps | None = None) -> Fa
         return JSONResponse({"detail": "Internal error"}, status_code=500)
 
     app.include_router(health.router)
-    app.include_router(metrics.router, dependencies=[Depends(require_scrape_key)])
-    protected = [Depends(require_key)]
-    for mod in (products, indicators, schemas, quality, runs, audit, catalog):
-        app.include_router(mod.router, dependencies=protected)
+    app.include_router(
+        metrics.router,
+        dependencies=[Depends(require_role(Capability.METRICS_READ, bearer=True))],
+    )
+    data = [Depends(require_role(Capability.DATA_READ))]
+    for mod in (products, indicators, schemas, quality, runs, catalog):
+        app.include_router(mod.router, dependencies=data)
+    app.include_router(audit.router, dependencies=[Depends(require_role(Capability.AUDIT_READ))])
+    app.include_router(review.router)  # per-route capabilities: read vs decide
     return app

@@ -23,7 +23,7 @@ chmod 600 "${KEY}"
 
 DIGEST="$(python3 -c 'import hashlib, sys
 with open(sys.argv[1], "rb") as f:
-    print("sha256:" + hashlib.sha256(f.read().strip()).hexdigest())' "${KEY}")"
+    print("prometheus:scraper:sha256:" + hashlib.sha256(f.read().strip()).hexdigest())' "${KEY}")"
 
 echo "Pour l'API (hôte) :" >&2
 echo "export ADP_API_KEYS='${DIGEST}'"

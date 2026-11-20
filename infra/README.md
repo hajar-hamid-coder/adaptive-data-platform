@@ -23,7 +23,8 @@ scripts/init_scrape_key.sh
 docker compose up -d --wait
 
 # 3. API sur l'hôte, avec le digest affiché par le script
-export ADP_API_KEYS='sha256:<digest affiché>'
+export ADP_API_KEYS='prometheus:scraper:sha256:<digest>'  # valeur affichée par le script
+#   (ajouter par ex. ,alice:viewer:sha256:<hex> : voir docs/securite.md)
 uv run adp api serve --port 8000
 ```
 
@@ -33,7 +34,8 @@ uv run adp api serve --port 8000
 |---|---|---|
 | Grafana | http://127.0.0.1:3000 (`GRAFANA_PORT`) | anonyme, rôle **Viewer** (lecture seule) |
 | Prometheus | http://127.0.0.1:9090 (`PROMETHEUS_PORT`) | lecture, cibles : `/targets` |
-| API ADP | http://127.0.0.1:8000 | `/metrics` protégé par clé (`X-API-Key` ou `Bearer`) |
+| API ADP | http://127.0.0.1:8000 | `/metrics` protégé par clé (`X-API-Key` ou `Bearer`), rôle `scraper` |
+| Proxy TLS Caddy | https://localhost:8443 (`CADDY_HTTPS_PORT`) | HTTPS devant l'API, voir docs/securite.md |
 
 Dashboard : Grafana → dossier **ADP** → **ADP Overview**. Filtre « Source » en haut.
 

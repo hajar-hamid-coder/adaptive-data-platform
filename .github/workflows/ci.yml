@@ -69,3 +69,29 @@ jobs:
           name: playwright-report
           path: frontend/playwright-report
           retention-days: 7
+
+  # Scans de sécurité (P6-07) : dépendances Python et npm, secrets dans l'historique.
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read  # gitleaks-action liste les commits d'une PR
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # gitleaks analyse tout l'historique
+      - uses: astral-sh/setup-uv@v5
+      - name: pip-audit (lock Python, dépendances de dev incluses)
+        run: |
+          uv export --frozen --no-hashes --no-emit-project > "$RUNNER_TEMP/requirements.txt"
+          uvx pip-audit==2.10.1 -r "$RUNNER_TEMP/requirements.txt" --no-deps --disable-pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: npm audit (lock frontend)
+        run: npm audit --audit-level=high --package-lock-only
+        working-directory: frontend
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml

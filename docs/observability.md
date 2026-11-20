@@ -38,8 +38,9 @@ dans le processus API. Registre dédié (pas le registre global).
 
 ## Authentification et scrape
 
-`/metrics` utilise les mêmes clés API que le reste (`ADP_API_KEYS`), via `X-API-Key` ou
-`Authorization: Bearer <clé>` (ce que Prometheus envoie nativement). `/health` reste public.
+`/metrics` utilise le même mécanisme de clés que le reste (`ADP_API_KEYS`, capacité `metrics:read`,
+voir docs/securite.md), via `X-API-Key` ou `Authorization: Bearer <clé>` (ce que Prometheus envoie
+nativement). Une clé de rôle `scraper` ne lit que `/metrics` : à préférer pour Prometheus. `/health` reste public.
 
 ```yaml
 # prometheus.yml

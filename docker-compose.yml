@@ -100,8 +100,32 @@ services:
       timeout: 5s
       retries: 12
 
+  # TLS local (P6-07) : Caddy termine HTTPS devant l'API de l'hôte (host.docker.internal:8000).
+  # CA locale (`tls internal`) dans le volume caddy-data : aucun certificat dans le repo.
+  # https://localhost:8443 ; http://localhost:8080 redirige vers HTTPS.
+  caddy:
+    image: caddy:2.10.2-alpine
+    environment:
+      CADDY_HTTPS_PORT: "${CADDY_HTTPS_PORT:-8443}"  # port public, pour la redirection HTTP
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Docker Desktop le fournit déjà ; requis sous Linux
+    ports:
+      - "127.0.0.1:${CADDY_HTTPS_PORT:-8443}:8443"
+      - "127.0.0.1:${CADDY_HTTP_PORT:-8080}:80"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--no-check-certificate", "-O", "/dev/null", "https://localhost:8443/_caddy/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
 volumes:
   minio-data:
   pg-data:
   prometheus-data:
   grafana-data:
+  caddy-data:
+  caddy-config:

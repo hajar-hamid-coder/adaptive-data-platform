@@ -1,0 +1,49 @@
+# Reverse proxy TLS local (P6-07) : termine HTTPS devant l'API lancée sur l'hôte (:8000).
+# Aucun certificat ni clé dans le repo : `tls internal` = CA locale Caddy, générée dans le volume
+# caddy-data. Voir docs/securite.md pour l'exporter et lui faire confiance.
+{
+	admin off
+	http_port 80
+	https_port 8443
+	auto_https disable_redirects  # redirection explicite ci-dessous (port public non standard)
+}
+
+# HTTP -> HTTPS (308) vers le port public HTTPS publié par le compose.
+http://localhost {
+	redir https://localhost:{$CADDY_HTTPS_PORT:8443}{uri} 308
+}
+
+localhost {
+	tls internal
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Content-Security-Policy "default-src 'none'; frame-ancestors 'none'"
+		-Server
+	}
+
+	# Journal d'accès sans aucune information d'authentification (clé API, jeton, cookies).
+	log {
+		output stdout
+		format filter {
+			request>headers>X-Api-Key delete
+			request>headers>Authorization delete
+			request>headers>Proxy-Authorization delete
+			request>headers>Cookie delete
+			wrap json
+		}
+	}
+
+	# Santé du proxy lui-même (sans dépendre de l'API) pour le healthcheck du compose.
+	handle /_caddy/health {
+		respond "ok" 200
+	}
+
+	# X-Forwarded-For/Proto/Host sont posés par Caddy (valeurs entrantes écrasées : pas de proxy amont).
+	handle {
+		reverse_proxy host.docker.internal:8000
+	}
+}

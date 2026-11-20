@@ -1,0 +1,16 @@
+# Config gitleaks (P6-07) : règles par défaut + allowlist sobre des valeurs factices connues.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Valeurs factices : exemple d'environnement, fixtures de test, empreintes de démo"
+paths = [
+  '''^\.env\.example$''',
+  '''^tests/''',
+  '''(^|/)(uv\.lock|package-lock\.json)$''',
+]
+regexes = [
+  '''sha256:[0-9a-f]{64}''',      # empreintes (jamais la clé) d'ADP_API_KEYS
+  '''REPLACE_ME''',
+  '''change-me-locally''',
+]
