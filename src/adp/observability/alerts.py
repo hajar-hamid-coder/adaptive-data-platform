@@ -79,7 +79,7 @@ MAX_TEXT = 1800
 Severity = Literal["info", "warning", "critical"]
 AlertType = Literal[
     "run_failed", "schema_blocked", "quarantine_rate", "quality_score_below", "sla_freshness",
-    "recovered",
+    "recovered", "replay_exhausted",
 ]  # fmt: skip
 Decision = Literal["send", "suppressed", "duplicate"]
 Kind = Literal["slack", "discord"]

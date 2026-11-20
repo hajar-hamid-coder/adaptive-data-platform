@@ -80,7 +80,8 @@ def test_upgrade_postgres(pg_engine: Engine) -> None:
     tables = set(inspect(pg_engine).get_table_names())
     assert tables == {
         "schema_version", "schema_change", "review_queue", "mapping_decision_log",
-        "quality_score", "run_audit", "step_audit", "alert_state", "alembic_version",
+        "quality_score", "run_audit", "step_audit", "alert_state", "replay_attempt",
+        "replay_baseline", "alembic_version",
     }  # fmt: skip
     _assert_no_drift(pg_engine)
     reg = SchemaRegistry(pg_engine)

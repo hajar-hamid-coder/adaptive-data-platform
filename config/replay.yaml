@@ -1,0 +1,16 @@
+# Auto-rejeu intelligent (P6-03). Fichier absent = rejeu désactivé.
+# Kill switch prioritaire : variable d'environnement ADP_REPLAY_DISABLED=1.
+# Relu avant CHAQUE tentative (avant la réservation et juste avant l'exécution).
+enabled: true                 # kill switch global
+dry_run: false                # true = planifier et afficher sans rien exécuter ni écrire
+max_attempts: 3               # H-02 : budget par (source, lot Bronze, correctif)
+window_minutes: 60            # fenêtre du plafond global anti-emballement
+max_per_window: 10            # tentatives max toutes sources par fenêtre
+max_per_cycle: 2              # tentatives exécutées max par passage du sensor / de la CLI
+running_timeout_minutes: 30   # tentative planned/running plus vieille = crash, comptée en échec
+backoff:
+  cooldown_seconds: 60        # délai avant le 1er retry, puis x factor à chaque échec
+  factor: 2
+  max_seconds: 3600           # plafond
+  jitter: 0.2                 # +-20 % (borné, plafond respecté)
+sources: {}                   # ex. {hcp_population: {enabled: false}} : kill switch par source

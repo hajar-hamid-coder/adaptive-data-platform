@@ -14,6 +14,7 @@ from adp.gold.views import build_product
 from adp.mapping.decision import ReviewItem, ReviewQueue
 from adp.mapping.dictionary import load_dictionary
 from adp.orchestration.promote_asset import build_gold_store
+from adp.orchestration.replay import ReplayStore
 from adp.quality.quarantine import QuarantineStore, load_quarantine_config
 from adp.quality.rules import load_references, load_rules
 from adp.schema.registry import make_engine
@@ -183,6 +184,43 @@ def _alerts_test(args: argparse.Namespace) -> int:
     return 0 if ok else 1
 
 
+def _replay_store(args: argparse.Namespace) -> ReplayStore:
+    return ReplayStore(make_engine(args.db))
+
+
+def _replay_status(args: argparse.Namespace) -> int:
+    rows = _replay_store(args).attempts(args.source)
+    print(f"Rejeux : {len(rows)} ligne(s)")
+    for r in rows:
+        who = f" par {r['actor']}" if r["actor"] else ""
+        print(f"  {r['source_name']} {r['bronze_batch']} fix={r['fix_id']} "
+              f"#{r['attempt_no']} [{r['status']}] {r['reason_code']}{who}")  # fmt: skip
+    return 0
+
+
+def _replay_run(args: argparse.Namespace) -> int:
+    import os
+
+    from adp.orchestration.replay import ReplayContext, run_replays
+    from adp.sources.spec import load_registry
+
+    sources = load_registry(Path(os.environ.get("ADP_SOURCES_DIR", "config/sources")))
+    reports = run_replays(ReplayContext.from_env(sources, args.db), dry_run=args.dry_run)
+    print(f"Rejeu{' (simulation)' if args.dry_run else ''} : {len(reports)} candidat(s)")
+    for r in reports:
+        n = f" #{r.attempt_no}" if r.attempt_no else ""
+        print(f"  {r.source} {r.bronze_batch}{n} [{r.status}] {r.reason}")
+    return 0
+
+
+def _replay_reset(args: argparse.Namespace) -> int:
+    from datetime import UTC, datetime
+
+    _replay_store(args).reset(args.source, args.batch, args.by, args.reason, datetime.now(UTC))
+    print(f"Budget de rejeu réinitialisé pour {args.source} {args.batch} par {args.by.strip()}.")
+    return 0
+
+
 def _api_serve(args: argparse.Namespace) -> int:
     import uvicorn
 
@@ -281,6 +319,24 @@ def main(argv: list[str] | None = None) -> int:
     at.add_argument("--kind", choices=["slack", "discord"], default="slack")
     at.add_argument("--config", type=Path, default=Path("config/alerts.yaml"))
     at.set_defaults(func=_alerts_test)
+    replay = sub.add_parser("replay", help="auto-rejeu des lots bloqués").add_subparsers(
+        dest="cmd", required=True
+    )
+    rs = replay.add_parser("status", help="lister les tentatives de rejeu")
+    rs.add_argument("--source", help="filtrer sur une source")
+    rs.add_argument("--db", help=db_help)
+    rs.set_defaults(func=_replay_status)
+    rr = replay.add_parser("run", help="un passage de rejeu (kill switch et budgets appliqués)")
+    rr.add_argument("--dry-run", action="store_true", help="planifier sans exécuter ni écrire")
+    rr.add_argument("--db", help=db_help)
+    rr.set_defaults(func=_replay_run)
+    rz = replay.add_parser("reset", help="réinitialiser le budget de rejeu d'un lot")
+    rz.add_argument("source")
+    rz.add_argument("batch", help="clé du lot Bronze (voir replay status)")
+    rz.add_argument("--by", required=True, help="auteur (obligatoire)")
+    rz.add_argument("--reason", required=True, help="raison (obligatoire, journalisée)")
+    rz.add_argument("--db", help=db_help)
+    rz.set_defaults(func=_replay_reset)
     api = sub.add_parser("api", help="API HTTP en lecture seule").add_subparsers(
         dest="cmd", required=True
     )

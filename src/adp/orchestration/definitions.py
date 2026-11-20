@@ -11,6 +11,7 @@ from adp.orchestration.promote_asset import (
     build_quarantine_store,
     make_promote_assets,
 )
+from adp.orchestration.replay import make_replay_sensor
 from adp.orchestration.schema_gate import SchemaRegistryResource, make_schema_check_assets
 from adp.orchestration.silver_chain import build_silver_store, make_silver_assets
 from adp.sources.spec import load_registry
@@ -28,7 +29,7 @@ def build_definitions(sources_dir: Path | None = None) -> Definitions:
             *make_silver_assets(registry),
             *make_promote_assets(registry),
         ],
-        sensors=[make_landing_sensor(registry)],
+        sensors=[make_landing_sensor(registry), make_replay_sensor(registry)],
         resources={
             "store": build_store(),
             "silver_store": build_silver_store(),

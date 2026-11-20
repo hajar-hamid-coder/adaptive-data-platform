@@ -13,6 +13,7 @@ from sqlalchemy import create_engine
 import adp.mapping.decision  # noqa: F401 - registers review tables on `metadata`
 import adp.observability.alerts  # noqa: F401 - registers alert_state on `metadata`
 import adp.observability.audit  # noqa: F401 - registers run_audit/step_audit on `metadata`
+import adp.orchestration.replay  # noqa: F401 - registers replay_attempt/replay_baseline
 import adp.quality.score  # noqa: F401 - registers quality_score on `metadata`
 from adp.config import get_settings
 from adp.schema.registry import metadata
