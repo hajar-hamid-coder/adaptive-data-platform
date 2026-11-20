@@ -1,0 +1,19 @@
+# Prometheus (P6-04) : scrape de l'API ADP lancée sur l'hôte (`uv run adp api serve`, port 8000).
+# La clé de scrape est lue depuis un fichier monté (/run/secrets), jamais écrite ici.
+# Voir infra/README.md et infra/secrets/README.md.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: adp-api
+    metrics_path: /metrics
+    scheme: http
+    scrape_interval: 15s
+    authorization:
+      type: Bearer
+      credentials_file: /run/secrets/adp_scrape_key
+    static_configs:
+      - targets: ["host.docker.internal:8000"]
+        labels:
+          service: adp-api

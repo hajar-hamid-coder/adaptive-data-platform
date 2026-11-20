@@ -44,3 +44,9 @@ graphify-out/.graphify_*
 .dagster_home/
 playwright-report/
 test-results/
+
+# secrets locaux de scrape (P6-04) : clé réelle jamais versionnée ; README et .example restent suivis
+infra/secrets/*
+!infra/secrets/
+!infra/secrets/README.md
+!infra/secrets/*.example

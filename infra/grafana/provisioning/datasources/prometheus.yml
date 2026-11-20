@@ -1,0 +1,14 @@
+# Datasource Prometheus provisionnée (P6-04). Pas de secret : Prometheus est joint par nom de service.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      httpMethod: POST
+      timeInterval: 15s

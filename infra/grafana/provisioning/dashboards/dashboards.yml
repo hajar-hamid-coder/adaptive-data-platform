@@ -1,0 +1,14 @@
+# Provider de dashboards en fichiers (P6-04) : le JSON versionné est la seule source de vérité.
+apiVersion: 1
+
+providers:
+  - name: adp
+    orgId: 1
+    folder: ADP
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false
