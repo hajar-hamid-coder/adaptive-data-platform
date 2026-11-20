@@ -16,6 +16,7 @@ Decisions:
 import time
 import uuid
 from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime
 from pathlib import Path
 
 import structlog
@@ -24,7 +25,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from adp.api.deps import Deps, key_digests, require_key, require_scrape_key
-from adp.api.routers import audit, catalog, health, metrics, products, quality, runs, schemas
+from adp.api.routers import (
+    audit,
+    catalog,
+    health,
+    indicators,
+    metrics,
+    products,
+    quality,
+    runs,
+    schemas,
+)
 from adp.catalog.runtime import default_catalog
 from adp.config import Settings, get_settings
 from adp.errors import AdpError
@@ -32,6 +43,7 @@ from adp.gold.contract import load_products
 from adp.logging import get_logger
 from adp.observability.audit import AuditStore
 from adp.observability.metrics import Metrics
+from adp.optimizer.usage import UsageEvent, UsageLog, load_usage_config
 from adp.orchestration.promote_asset import build_gold_store, build_quarantine_store
 from adp.quality.quarantine import QuarantineStore
 from adp.quality.score import QualityScoreStore
@@ -42,6 +54,7 @@ log = get_logger(__name__)
 TAGS = [
     {"name": "health", "description": "Santé du service (public) / liveness"},
     {"name": "products", "description": "Data products Gold / Gold data products"},
+    {"name": "indicators", "description": "Indicateurs Gold / Gold indicators"},
     {"name": "schemas", "description": "Registre de schémas / schema registry"},
     {"name": "quality", "description": "Qualité et quarantaine / quality and quarantine"},
     {"name": "runs", "description": "Exécutions / runs"},
@@ -62,7 +75,24 @@ def default_deps(settings: Settings) -> Deps:
         reports_dir=Path(settings.adp_reports_dir),
         catalog=default_catalog,
         audit=AuditStore(engine),
+        usage=UsageLog(load_usage_config()),
     )
+
+
+def _journal_usage(app: FastAPI, request: Request, route: str | None, status: int,
+                   ms: float) -> None:  # fmt: skip
+    """Usage journal (P6-05) of analytical requests: shape only; never breaks a request."""
+    usage = getattr(request.state, "usage", None)
+    sink: UsageLog | None = app.state.deps.usage
+    if usage is None or sink is None or route is None:
+        return
+    try:
+        shape, rows, total, ncols = usage
+        sink.record(UsageEvent(ts=datetime.now(UTC), route=route, shape=shape, status=status,
+                               ms=round(ms, 3), rows=rows, total=total, ncols=ncols,
+                               sample_rate=1.0))  # fmt: skip
+    except Exception as exc:  # noqa: BLE001 - journaling must never fail the request
+        log.warning("usage_journal_failed", error=type(exc).__name__)
 
 
 def create_app(settings: Settings | None = None, deps: Deps | None = None) -> FastAPI:
@@ -102,9 +132,11 @@ def create_app(settings: Settings | None = None, deps: Deps | None = None) -> Fa
         finally:
             route = request.scope.get("route")
             app.state.metrics.api_request(getattr(route, "path", None), request.method, status)
+            ms = (time.perf_counter() - start) * 1000
+            _journal_usage(app, request, getattr(route, "path", None), status, ms)
             # path only: no query string, no headers (API key)
             log.info("api_request", method=request.method, path=request.url.path, status=status,
-                     ms=round((time.perf_counter() - start) * 1000, 1))  # fmt: skip
+                     ms=round(ms, 1))  # fmt: skip
             structlog.contextvars.unbind_contextvars("request_id")
 
     @app.exception_handler(AdpError)
@@ -115,6 +147,6 @@ def create_app(settings: Settings | None = None, deps: Deps | None = None) -> Fa
     app.include_router(health.router)
     app.include_router(metrics.router, dependencies=[Depends(require_scrape_key)])
     protected = [Depends(require_key)]
-    for mod in (products, schemas, quality, runs, audit, catalog):
+    for mod in (products, indicators, schemas, quality, runs, audit, catalog):
         app.include_router(mod.router, dependencies=protected)
     return app

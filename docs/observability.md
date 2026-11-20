@@ -75,3 +75,20 @@ problème d'alerte ne change jamais l'issue du run.
   déterministes ; LLM en option (`rca.use_llm`, clé `ANTHROPIC_API_KEY`) avec garde de
   confidentialité, budget, cache ; une hypothèse LLM sans preuve réelle est rejetée.
 - **Test** : `uv run adp alerts test --dry-run [--kind discord]` affiche le payload sans envoyer.
+
+## Auto-optimisation guidée par l'usage (P6-05)
+
+- **Journal d'usage** (`src/adp/optimizer/usage.py`, `config/optimizer.yaml`) : une ligne JSONL
+  par requête analytique (`/products/{name}/data`, `/indicators/{name}`) avec le gabarit de route,
+  la cible, la *forme* de la requête (opération, colonnes de filtre/tri/agrégat), la durée, les
+  comptes de lignes, la taille de page et une *tranche* d'offset. Jamais de valeur de paramètre,
+  de chemin brut, d'en-tête ni de ligne. Échantillonnage, rotation et plafond de rétention
+  configurables ; une erreur de journal ne casse jamais la requête.
+- **Advisor** (`advisor.py`) : règles pures (preuve minimale, p95, part du temps total, gain
+  attendu) ; types émis : vue matérialisée d'indicateur, pagination par position (keyset).
+- **Application sous validation humaine** : `adp optimize recommend`, `adp optimize apply ID
+  --by X --reason R`, `adp optimize revert ID --by X --reason R`, `adp optimize report ID`.
+  Artefacts additifs sous `gold_opt/` (Gold/Silver jamais modifiés), journal append-only
+  `gold_opt/_journal/`, artefact périmé ignoré (repli sur la source), équivalence vérifiée avant
+  activation, coupe-circuit `ADP_OPTIMIZER_DISABLED=1`.
+- **Mesure** : `make bench-optim` (1 M lignes synthétiques, hors CI) écrit `docs/optimisation.md`.

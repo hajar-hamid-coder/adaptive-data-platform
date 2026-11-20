@@ -98,14 +98,19 @@ def _load_source(
     return ids
 
 
-def _run_select(
-    con: duckdb.DuckDBPyConnection, sql: str
-) -> tuple[list[str], list[tuple[Any, ...]]]:
+def _lock(con: duckdb.DuckDBPyConnection, sql: str) -> None:
+    """No file/network access from here on, configuration locked; `sql` must be one SELECT."""
     con.execute("SET enable_external_access=false")
     con.execute("SET lock_configuration=true")
     stmts = con.extract_statements(sql)
     if len(stmts) != 1 or stmts[0].type != duckdb.StatementType.SELECT:
         raise GoldError("Gold SQL must be a single SELECT statement")
+
+
+def _run_select(
+    con: duckdb.DuckDBPyConnection, sql: str
+) -> tuple[list[str], list[tuple[Any, ...]]]:
+    _lock(con, sql)
     try:
         cur = con.execute(sql)
         return [d[0] for d in cur.description], cur.fetchall()
@@ -173,6 +178,19 @@ def build_product(
     return BuiltProduct(product.name, product.version, digest, len(rows), data_key, mf_key, created)
 
 
+def latest_gold(store: ObjectStore, name: str) -> tuple[dict[str, Any], str] | None:
+    """Newest manifest of a product (highest contract version, then build date), its data key."""
+    best: tuple[tuple[Any, ...], dict[str, Any], str] | None = None
+    for key in store.list(f"{OUT_PREFIX}/{_ident(name)}/"):
+        if not key.endswith("/manifest.json"):
+            continue
+        m = json.loads(store.get(key))
+        rank = (tuple(int(x) for x in m["contract_version"].split(".")), m["built_at"])
+        if best is None or rank > best[0]:
+            best = (rank, m, key.removesuffix("manifest.json") + "data.parquet")
+    return (best[1], best[2]) if best else None
+
+
 def _catalog_get(catalog: Mapping[str, DataProduct], name: str) -> DataProduct:
     if name not in catalog:
         raise GoldError(f"unknown upstream product '{name}'")
@@ -189,18 +207,57 @@ def build_all(
     return [build_product(p, gold_store, out_store, catalog, sql_dir=sql_dir) for p in products]
 
 
+def indicator_sql(name: str, *, sql_dir: Path = SQL_DIR) -> tuple[str, list[str]]:
+    """SQL text of an indicator and the sources named in its `-- sources:` header."""
+    sql = _read_sql(name, sql_dir / "indicators")
+    m = _SOURCES.search(sql)
+    return sql, [_ident(s.strip()) for s in m.group(1).split(",")] if m else []
+
+
 def run_indicator(
     name: str, gold_store: ObjectStore, *, sql_dir: Path = SQL_DIR
 ) -> tuple[list[str], list[tuple[Any, ...]]]:
     """Compute an indicator (not materialised) from `sql/gold/indicators/<name>.sql`."""
-    sql = _read_sql(name, sql_dir / "indicators")
-    m = _SOURCES.search(sql)
-    sources = [s.strip() for s in m.group(1).split(",")] if m else []
+    sql, sources = indicator_sql(name, sql_dir=sql_dir)
     with tempfile.TemporaryDirectory() as tmp:
         con = duckdb.connect()
         try:
             for s in sources:
-                _load_source(con, gold_store, _ident(s), Path(tmp))
+                _load_source(con, gold_store, s, Path(tmp))
             return _run_select(con, sql)
         finally:
             con.close()
+
+
+def indicator_table(
+    con: duckdb.DuckDBPyConnection, name: str, gold_store: ObjectStore, tmp: Path,
+    *, sql_dir: Path = SQL_DIR, table: str = "q",
+) -> list[str]:  # fmt: skip
+    """Load the sources then run the indicator (sandboxed, like `run_indicator`) into `table`,
+    keeping the SQL row order. Returns the output columns. Used by the paginated API path and by
+    the optimizer's materialisation (P6-05)."""
+    sql, sources = indicator_sql(name, sql_dir=sql_dir)
+    for s in sources:
+        _load_source(con, gold_store, s, tmp)
+    _lock(con, sql)
+    body = sql.strip().rstrip(";")
+    try:
+        con.execute(f"CREATE TABLE {_ident(table)} AS\n{body}\n")
+    except duckdb.Error as exc:
+        raise GoldError(f"Gold SQL failed: {type(exc).__name__}: {exc}") from exc
+    return [d[0] for d in con.execute(f"SELECT * FROM {table} LIMIT 0").description]
+
+
+def indicator_page(
+    name: str, gold_store: ObjectStore, limit: int, offset: int, *, sql_dir: Path = SQL_DIR
+) -> tuple[list[str], list[tuple[Any, ...]], int]:
+    """One page of an indicator (SQL order) and the total row count, computed from Silver."""
+    with tempfile.TemporaryDirectory() as tmp:
+        con = duckdb.connect()
+        try:
+            cols = indicator_table(con, name, gold_store, Path(tmp), sql_dir=sql_dir)
+            row = con.execute("SELECT count(*) FROM q").fetchone()
+            rows = con.execute("SELECT * FROM q LIMIT ? OFFSET ?", [limit, offset]).fetchall()
+        finally:
+            con.close()
+    return cols, rows, int(row[0]) if row else 0

@@ -1,4 +1,4 @@
-.PHONY: install lint test demo
+.PHONY: install lint test demo bench-optim
 
 install:
 	uv sync
@@ -14,3 +14,7 @@ test:
 
 demo:
 	@echo "demo: not yet implemented (P1+)"
+
+# P6-05 / H-11 : benchmark lent (1 M lignes, plusieurs minutes), hors CI et hors `pytest`
+bench-optim:
+	uv run python scripts/bench_optim.py

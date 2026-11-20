@@ -16,6 +16,7 @@ from adp.catalog.model import Catalog
 from adp.config import Settings
 from adp.gold.contract import DataProduct
 from adp.observability.audit import AuditStore
+from adp.optimizer.usage import QueryShape, UsageLog
 from adp.quality.quarantine import QuarantineStore
 from adp.quality.score import QualityScoreStore
 from adp.schema.registry import SchemaRegistry
@@ -38,6 +39,12 @@ class Deps:
     reports_dir: Path
     catalog: Callable[[], Catalog] | None = None  # None: contracts only (partial lineage)
     audit: AuditStore | None = None  # None: no audit journal (empty /audit, bare /metrics)
+    usage: UsageLog | None = None  # None: analytical requests are not journaled (P6-05)
+
+
+def note_usage(request: Request, shape: QueryShape, rows: int, total: int, ncols: int) -> None:
+    """Hand the query SHAPE (no value) to the request middleware, which journals it."""
+    request.state.usage = (shape, rows, total, ncols)
 
 
 def get_deps(request: Request) -> Deps:

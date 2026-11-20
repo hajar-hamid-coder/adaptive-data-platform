@@ -13,6 +13,7 @@ from adp.gold.contract import PRODUCTS_DIR, impact_matrix, load_products, render
 from adp.gold.views import build_product
 from adp.mapping.decision import ReviewItem, ReviewQueue
 from adp.mapping.dictionary import load_dictionary
+from adp.optimizer.advisor import Recommendation
 from adp.orchestration.promote_asset import build_gold_store
 from adp.orchestration.replay import ReplayStore
 from adp.quality.quarantine import QuarantineStore, load_quarantine_config
@@ -221,6 +222,90 @@ def _replay_reset(args: argparse.Namespace) -> int:
     return 0
 
 
+def _opt_ctx(args: argparse.Namespace) -> tuple[ObjectStore, list[Recommendation]]:
+    from adp.optimizer import advisor, apply, usage
+
+    store: ObjectStore = LocalStore(args.gold_dir) if args.gold_dir else build_gold_store()
+    cfg = usage.load_usage_config()
+    if args.usage_dir:
+        cfg = cfg.model_copy(update={"dir": args.usage_dir})
+    stats = usage.aggregate(usage.UsageLog(cfg).events())
+    recs = advisor.recommend(stats, advisor.load_advisor_config(), apply.active(store))
+    return store, recs
+
+
+def _optimize_recommend(args: argparse.Namespace) -> int:
+    from adp.optimizer.apply import active
+
+    store, recs = _opt_ctx(args)
+    print(f"Recommandations : {len(recs)} (aucune n'est appliquée sans validation humaine)")
+    for r in recs:
+        print(f"  {r.id} [{r.type}] {r.target} : {r.justification} ; gain attendu "
+              f"{r.expected_gain:.0%} ; stockage ≈ {r.storage_bytes_est / 1e6:.1f} Mo, "
+              f"construction ≈ {r.build_seconds_est:.1f} s ; risque {r.risk}")  # fmt: skip
+    for rid, e in sorted(active(store).items()):
+        print(f"  actif : {rid} ({e.type}, {e.target}) appliqué par {e.by} le {e.at:%Y-%m-%d}")
+    return 0
+
+
+def _optimize_apply(args: argparse.Namespace) -> int:
+    from adp.optimizer.apply import active, apply
+
+    store, recs = _opt_ctx(args)
+    ev = active(store).get(args.rec_id)
+    rec = next((r for r in recs if r.id == args.rec_id), None)
+    if ev is not None:
+        rtype, target = ev.type, ev.target
+    elif rec is not None:
+        rtype, target = rec.type, rec.target
+    else:
+        raise ValueError(f"recommandation '{args.rec_id}' inconnue ou non justifiée par le journal")
+    res = apply(store, args.rec_id, rtype, target, args.by, args.reason)
+    label = {"applied": "appliquée", "refreshed": "rafraîchie", "noop": "déjà active (aucun effet)"}
+    print(f"{args.rec_id} : {label[res.status]} ; artefact {res.base} ({res.bytes / 1e6:.2f} Mo)")
+    return 0
+
+
+def _optimize_revert(args: argparse.Namespace) -> int:
+    from adp.optimizer.apply import revert
+
+    store: ObjectStore = LocalStore(args.gold_dir) if args.gold_dir else build_gold_store()
+    done = revert(store, args.rec_id, args.by, args.reason)
+    print(f"{args.rec_id} : {'désactivée' if done else 'non active (aucun effet)'}")
+    return 0
+
+
+def _optimize_report(args: argparse.Namespace) -> int:
+    from datetime import UTC, datetime
+
+    from adp.optimizer.apply import active, check_equivalence, current_artefact, journal
+    from adp.optimizer.report import Entry, measure, render, stats
+
+    store: ObjectStore = LocalStore(args.gold_dir) if args.gold_dir else build_gold_store()
+    ev = active(store).get(args.rec_id)
+    if ev is None:
+        raise ValueError(f"recommandation '{args.rec_id}' non active : appliquer d'abord")
+    before, after = measure(store, ev.type, ev.target, [0], args.limit, reps=args.reps)
+    key = current_artefact(store, ev.type, ev.target)
+    if key is None:
+        raise ValueError("artefact périmé (entrées modifiées) : ré-appliquer avant le rapport")
+    base = key.removesuffix("/data.parquet")
+    entry = Entry(
+        rec_id=args.rec_id, type=ev.type, target=ev.target,
+        workload=f"page de {args.limit} lignes, offset 0, {args.reps} répétitions alternées",
+        method="processus unique, même fonction de service que l'API (indicatif ; voir "
+               "`make bench-optim` pour la mesure rigoureuse)",
+        measured_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC"),
+        before=stats(before), after=stats(after), storage_bytes=len(store.get(key)),
+        equivalent=check_equivalence(store, ev.type, ev.target, base),
+        notes=(f"Appliquée par {ev.by} : {ev.reason}", f"{len(journal(store))} événement(s) au "
+               "journal d'optimisation"),
+    )  # fmt: skip
+    args.output.write_text(render([entry]), encoding="utf-8")
+    print(f"Rapport écrit dans {args.output}")
+    return 0
+
+
 def _api_serve(args: argparse.Namespace) -> int:
     import uvicorn
 
@@ -337,6 +422,27 @@ def main(argv: list[str] | None = None) -> int:
     rz.add_argument("--reason", required=True, help="raison (obligatoire, journalisée)")
     rz.add_argument("--db", help=db_help)
     rz.set_defaults(func=_replay_reset)
+    opt = sub.add_parser("optimize", help="auto-optimisation guidée par l'usage").add_subparsers(
+        dest="cmd", required=True
+    )
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--gold-dir", type=Path, help="racine du store Gold (défaut : config)")
+    common.add_argument("--usage-dir", type=Path, help="journal d'usage (défaut : config)")
+    orc = opt.add_parser("recommend", parents=[common], help="lister les recommandations")
+    orc.set_defaults(func=_optimize_recommend)
+    for name, func, verb in (("apply", _optimize_apply, "appliquer"),
+                             ("revert", _optimize_revert, "désactiver")):  # fmt: skip
+        p = opt.add_parser(name, parents=[common], help=f"{verb} une recommandation")
+        p.add_argument("rec_id")
+        p.add_argument("--by", required=True, help="auteur (obligatoire)")
+        p.add_argument("--reason", required=True, help="raison (obligatoire, journalisée)")
+        p.set_defaults(func=func)
+    orp = opt.add_parser("report", parents=[common], help="rapport avant/après (docs)")
+    orp.add_argument("rec_id")
+    orp.add_argument("--output", type=Path, default=Path("docs/optimisation.md"))
+    orp.add_argument("--reps", type=int, default=30)
+    orp.add_argument("--limit", type=int, default=50)
+    orp.set_defaults(func=_optimize_report)
     api = sub.add_parser("api", help="API HTTP en lecture seule").add_subparsers(
         dest="cmd", required=True
     )

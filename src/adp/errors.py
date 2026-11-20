@@ -64,3 +64,7 @@ class ReplayError(AdpError):
 
 class AlertError(AdpError):
     """Alert state or delivery failure (messages never contain a webhook URL or a data value)."""
+
+
+class OptimizerError(AdpError):
+    """Usage-driven optimisation failure (codes, ids and counts only; never a data value)."""

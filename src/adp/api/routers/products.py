@@ -1,33 +1,18 @@
 """Data products: contracts, latest Gold version and Gold rows (read-only)."""
 
-import json
-import tempfile
-from pathlib import Path
 from typing import Annotated, Any
 
-import duckdb
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi import Path as PathParam
 
-from adp.api.deps import PRODUCT_RE, DepsT, Page, Paging
+from adp.api.deps import PRODUCT_RE, DepsT, Page, Paging, note_usage
 from adp.gold.contract import impact_matrix
-from adp.gold.views import OUT_PREFIX
+from adp.gold.views import latest_gold
+from adp.optimizer.apply import serve_product
+from adp.optimizer.usage import QueryShape, depth_bucket
 
 router = APIRouter(prefix="/products", tags=["products"])
 Name = Annotated[str, PathParam(pattern=PRODUCT_RE, max_length=64)]
-
-
-def _latest(deps: Any, name: str) -> tuple[dict[str, Any], str] | None:
-    """Newest manifest (highest contract version, then build date) and its data key."""
-    best: tuple[tuple[Any, ...], dict[str, Any], str] | None = None
-    for key in deps.gold.list(f"{OUT_PREFIX}/{name}/"):
-        if not key.endswith("/manifest.json"):
-            continue
-        m = json.loads(deps.gold.get(key))
-        rank = (tuple(int(x) for x in m["contract_version"].split(".")), m["built_at"])
-        if best is None or rank > best[0]:
-            best = (rank, m, key.removesuffix("manifest.json") + "data.parquet")
-    return (best[1], best[2]) if best else None
 
 
 def _find(deps: Any, name: str) -> Any:
@@ -54,7 +39,7 @@ def list_products(deps: DepsT, page: Paging) -> Page:
 def get_product(name: Name, deps: DepsT) -> dict[str, Any]:
     p = _find(deps, name)
     eff = next(r for r in impact_matrix(deps.products.values()).products if r.name == name)
-    latest = _latest(deps, name)
+    latest = latest_gold(deps.gold, name)
     gold = None
     if latest:
         m = latest[0]
@@ -69,25 +54,17 @@ def get_product(name: Name, deps: DepsT) -> dict[str, Any]:
 @router.get("/{name}/data", summary="Lignes Gold paginées / Paginated Gold rows")
 def product_data(
     name: Name,
+    request: Request,
     deps: DepsT,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> Page:
     _find(deps, name)
-    latest = _latest(deps, name)
+    latest = latest_gold(deps.gold, name)
     if latest is None:
         raise HTTPException(404, "No Gold version built")
-    with tempfile.TemporaryDirectory() as tmp:
-        f = Path(tmp) / "d.parquet"
-        f.write_bytes(deps.gold.get(latest[1]))
-        con = duckdb.connect()
-        try:
-            total = con.execute("SELECT count(*) FROM read_parquet(?)", [str(f)]).fetchone()
-            cur = con.execute(
-                "SELECT * FROM read_parquet(?) LIMIT ? OFFSET ?", [str(f), limit, offset]
-            )
-            cols = [d[0] for d in cur.description]
-            rows = [dict(zip(cols, r, strict=True)) for r in cur.fetchall()]
-        finally:
-            con.close()
-    return Page(items=rows, total=total[0] if total else 0, limit=limit, offset=offset)
+    cols, rows, total, _ = serve_product(deps.gold, name, latest[0], latest[1], limit, offset)
+    shape = QueryShape(op="page", target=name, depth=depth_bucket(offset), limit=limit)
+    note_usage(request, shape, len(rows), total, len(cols))
+    items = [dict(zip(cols, r, strict=True)) for r in rows]
+    return Page(items=items, total=total, limit=limit, offset=offset)

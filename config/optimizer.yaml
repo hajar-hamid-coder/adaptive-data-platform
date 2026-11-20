@@ -1,0 +1,17 @@
+# Auto-optimisation guidée par l'usage (P6-05). Voir docs/optimisation.md.
+usage:
+  dir: data/usage          # journal JSONL (forme des requêtes, jamais de valeur)
+  sample_rate: 1.0         # part des requêtes journalisées (les fréquences sont repondérées)
+  max_bytes: 5000000       # rotation du fichier courant au-delà de cette taille
+  max_files: 5             # plafond de rétention : fichiers tournés conservés
+advisor:
+  min_observations: 30     # preuve minimale : requêtes observées (non pondérées) par forme
+  min_p95_ms: 50           # une forme rapide n'est pas optimisée
+  min_time_share: 0.10     # part minimale du temps total des requêtes analytiques
+  min_expected_gain: 0.30  # gain attendu minimal (cible H-11)
+  deep_offset: 10000       # offset à partir duquel une page est « profonde »
+  deep_share_min: 0.5      # part de pages profondes déclenchant la pagination par position
+  # Gains a priori par type (ordre de grandeur, vérifié par le rapport avant/après)
+  assumed_gain:
+    materialize_indicator: 0.8
+    keyset_pagination: 0.5
