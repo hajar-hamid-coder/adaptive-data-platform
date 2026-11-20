@@ -19,3 +19,4 @@ Format : `YYYY-MM-DD — décision — raison`.
 - 2026-11-08 — Mapping LLM : le LLM ne reçoit jamais de valeur (noms, types, motifs de forme anonymes partagés par ≥2 valeurs) ; le garde-fou lève avant l'appel ; réponse invalide rejetée en bloc ; cible = un des k candidats RAG ou null ; repli local plafonné à 0,89 donc jamais d'auto-application sans validation.
 - 2026-11-08 — Transformations : la sécurité vient d'une liste blanche fermée d'opérations validée par schéma avant toute exécution, jamais d'un filtre de mots-clés ; les valeurs de tables sont des données opaques.
 - Quarantaine : stockage objet JSON append-only ; Gold = marqueur gold_ready jusqu'à P5 ; quarantaine ≠ panne Dagster (H-26/H-27/H-28).
+- Gold = artefacts Parquet immuables adressés par contenu gold/<produit>/v<contrat>/<sha12>/ + manifeste ; API lecture seule, clé hachée, jamais dans le bundle (proxy Vite/reverse proxy) ; lignage SQL par analyse sans exécution, partial si doute.

@@ -1,6 +1,7 @@
 """`adp` command line."""
 
 import argparse
+import json
 import sys
 from datetime import date
 from pathlib import Path
@@ -8,8 +9,11 @@ from pathlib import Path
 from adp.bronze.lifecycle import apply_archive, load_retention, plan_archive, summarize
 from adp.bronze.store import LocalStore, ObjectStore, S3Store
 from adp.errors import AdpError
+from adp.gold.contract import PRODUCTS_DIR, impact_matrix, load_products, render_bia_markdown
+from adp.gold.views import build_product
 from adp.mapping.decision import ReviewItem, ReviewQueue
 from adp.mapping.dictionary import load_dictionary
+from adp.orchestration.promote_asset import build_gold_store
 from adp.quality.quarantine import QuarantineStore, load_quarantine_config
 from adp.quality.rules import load_references, load_rules
 from adp.schema.registry import make_engine
@@ -113,6 +117,56 @@ def _quarantine_replay(args: argparse.Namespace) -> int:
     return 0
 
 
+def _products_validate(args: argparse.Namespace) -> int:
+    products = load_products(args.dir)
+    print(f"{len(products)} data product(s) valide(s) :")
+    for p in products:
+        print(f"  {p.name} v{p.version} [{p.criticality.value}] SLA {p.sla.freshness_hours} h")
+    return 0
+
+
+def _products_bia(args: argparse.Namespace) -> int:
+    md = render_bia_markdown(impact_matrix(load_products(args.dir)))
+    args.output.write_text(md, encoding="utf-8")
+    print(f"Analyse d'impact écrite dans {args.output}")
+    return 0
+
+
+def _gold_build(args: argparse.Namespace) -> int:
+    catalog = {p.name: p for p in load_products()}
+    if args.product and args.product not in catalog:
+        raise ValueError(f"unknown data product '{args.product}'")
+    gold = LocalStore(args.gold_dir) if args.gold_dir else build_gold_store()
+    out = LocalStore(args.out_dir) if args.out_dir else gold
+    for p in catalog.values():
+        if args.product and p.name != args.product:
+            continue
+        b = build_product(p, gold, out, catalog)
+        state = "créé" if b.created else "inchangé"
+        print(f"{b.product} v{b.version} : {b.rows} ligne(s), {b.content_hash[:12]} ({state})")
+    return 0
+
+
+def _catalog_export(args: argparse.Namespace) -> int:
+    from adp.catalog.openlineage import export_openlineage
+    from adp.catalog.runtime import default_catalog
+
+    text = json.dumps(export_openlineage(default_catalog()), indent=2, ensure_ascii=False)
+    if args.output:
+        args.output.write_text(text + "\n", encoding="utf-8")
+        print(f"Export OpenLineage-lite écrit dans {args.output}")
+    else:
+        print(text)
+    return 0
+
+
+def _api_serve(args: argparse.Namespace) -> int:
+    import uvicorn
+
+    uvicorn.run("adp.api.main:create_app", factory=True, host=args.host, port=args.port)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="adp")
     sub = parser.add_subparsers(dest="group", required=True)
@@ -171,6 +225,38 @@ def main(argv: list[str] | None = None) -> int:
             p.add_argument("--config", type=Path, default=QUALITY_DIR / "quarantine.yaml")
             p.add_argument("--as-of", help="date de référence YYYY-MM-DD pour la fraîcheur")
         p.set_defaults(func=func)
+
+    products = sub.add_parser("products", help="contrats de data products").add_subparsers(
+        dest="cmd", required=True
+    )
+    pv = products.add_parser("validate", help="valider config/products/*.yaml")
+    pv.add_argument("--dir", type=Path, default=PRODUCTS_DIR)
+    pv.set_defaults(func=_products_validate)
+    pb = products.add_parser("bia", help="générer la matrice d'impact (docs/bia.md)")
+    pb.add_argument("--dir", type=Path, default=PRODUCTS_DIR)
+    pb.add_argument("--output", type=Path, default=Path("docs/bia.md"))
+    pb.set_defaults(func=_products_bia)
+    gold = sub.add_parser("gold", help="vues et indicateurs Gold").add_subparsers(
+        dest="cmd", required=True
+    )
+    gb = gold.add_parser("build", help="construire les data products (Parquet sous gold/)")
+    gb.add_argument("product", nargs="?", help="produit (défaut : tous)")
+    gb.add_argument("--gold-dir", type=Path, help="racine du store gold_ready (défaut : config)")
+    gb.add_argument("--out-dir", type=Path, help="racine de sortie (défaut : même store)")
+    gb.set_defaults(func=_gold_build)
+    cat = sub.add_parser("catalog", help="catalogue et lignage").add_subparsers(
+        dest="cmd", required=True
+    )
+    ce = cat.add_parser("export", help="exporter le lignage (OpenLineage-lite JSON)")
+    ce.add_argument("--output", type=Path, help="fichier de sortie (défaut : stdout)")
+    ce.set_defaults(func=_catalog_export)
+    api = sub.add_parser("api", help="API HTTP en lecture seule").add_subparsers(
+        dest="cmd", required=True
+    )
+    srv = api.add_parser("serve", help="lancer l'API (uvicorn)")
+    srv.add_argument("--host", default="127.0.0.1")
+    srv.add_argument("--port", type=int, default=8000)
+    srv.set_defaults(func=_api_serve)
     args = parser.parse_args(argv)
     try:
         return int(args.func(args))

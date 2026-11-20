@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipeline - ADP</title>
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="mockup.css">
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<div class="app">
+<aside class="side">
+<a class="brand" href="index.html">ADP <span>Plateforme de données</span></a>
+<nav aria-label="Navigation principale"><ul class="nav"><li><a href="pipeline.html" aria-current="page">Pipeline</a></li><li><a href="qualite.html">Qualité</a></li><li><a href="schemas.html">Schémas</a></li><li><a href="revue-mapping.html">Revue du mapping</a></li></ul></nav>
+</aside>
+<main id="contenu">
+<header class="top">
+<div><h1>Pipeline</h1><p class="muted sub">État des runs Bronze, Silver et Gold par source. Source : GET /runs</p></div>
+<button class="btn" type="button" data-theme-toggle aria-pressed="false">Thème clair / sombre</button>
+</header>
+<section class="grid" aria-label="Indicateurs clés">
+<div class="card kpi"><div class="label">Sources actives</div><div class="value">4</div><div class="hint muted">sur 4 déclarées</div></div>
+<div class="card kpi"><div class="label">Runs (24 h)</div><div class="value">23</div><div class="hint muted">dont 2 en échec</div></div>
+<div class="card kpi"><div class="label">Taux de promotion</div><div class="value">87 %</div><div class="hint"><span class="badge warn">Objectif 90 %</span></div></div>
+<div class="card kpi"><div class="label">Lignes en quarantaine</div><div class="value">412</div><div class="hint"><span class="badge quarantine">1 lot à traiter</span></div></div>
+</section>
+<section class="card" aria-labelledby="h-runs">
+<header><h2 id="h-runs">État des runs par source</h2><span class="muted small">Médaillon Bronze, Silver, Gold</span></header>
+<div class="table-wrap" role="region" aria-label="Tableau des runs, défilement horizontal possible" tabindex="0">
+<table><caption class="small">Dernier run de chaque source (données fictives)</caption>
+<thead><tr><th scope="col">Source</th><th scope="col">Étapes</th><th scope="col">Dernier run</th><th scope="col">Schéma</th><th scope="col">Score qualité</th><th scope="col">Statut</th></tr></thead>
+<tbody><tr><th scope="row"><code>ventes_boutiques</code></th><td><ol class="stages" aria-label="Étapes du dernier run"><li class="stage ok"><span><b>Bronze</b></span><span class="badge ok">Ingéré</span><span class="t">06:02</span></li><li class="arrow" aria-hidden="true"></li><li class="stage ok"><span><b>Silver</b></span><span class="badge ok">Validé</span><span class="t">06:03</span></li><li class="arrow" aria-hidden="true"></li><li class="stage ok"><span><b>Gold</b></span><span class="badge ok">Publié</span><span class="t">06:05</span></li></ol></td><td><code>run_20261119_0602</code><br><span class="muted">2026-11-19T06:02Z</span></td><td>v4</td><td><div class="bar "><div class="track" role="img" aria-label="Score 96.4 sur 100"><div class="fill" style="width:96.4%"></div></div><b>96.4</b></div></td><td><span class="badge ok">Promu</span></td></tr><tr><th scope="row"><code>clients_crm</code></th><td><ol class="stages" aria-label="Étapes du dernier run"><li class="stage ok"><span><b>Bronze</b></span><span class="badge ok">Ingéré</span><span class="t">05:40</span></li><li class="arrow" aria-hidden="true"></li><li class="stage quarantine"><span><b>Silver</b></span><span class="badge quarantine">412 lignes isolées</span><span class="t">05:41</span></li><li class="arrow" aria-hidden="true"></li><li class="stage ok"><span><b>Gold</b></span><span class="badge ok">Publié</span><span class="t">05:44</span></li></ol></td><td><code>run_20261119_0540</code><br><span class="muted">2026-11-19T05:40Z</span></td><td>v7</td><td><div class="bar warn"><div class="track" role="img" aria-label="Score 81.2 sur 100"><div class="fill" style="width:81.2%"></div></div><b>81.2</b></div></td><td><span class="badge quarantine">Quarantaine partielle</span></td></tr><tr><th scope="row"><code>stock_entrepots</code></th><td><ol class="stages" aria-label="Étapes du dernier run"><li class="stage ok"><span><b>Bronze</b></span><span class="badge ok">Ingéré</span><span class="t">04:15</span></li><li class="arrow" aria-hidden="true"></li><li class="stage error"><span><b>Silver</b></span><span class="badge error">Schéma bloquant</span><span class="t">04:16</span></li><li class="arrow" aria-hidden="true"></li><li class="stage idle"><span><b>Gold</b></span><span class="badge info">En attente</span><span class="t">-</span></li></ol></td><td><code>run_20261119_0415</code><br><span class="muted">2026-11-19T04:15Z</span></td><td>v2</td><td><div class="bar error"><div class="track" role="img" aria-label="Score 58.9 sur 100"><div class="fill" style="width:58.9%"></div></div><b>58.9</b></div></td><td><span class="badge error">Bloqué</span></td></tr><tr><th scope="row"><code>chomage_regions</code></th><td><ol class="stages" aria-label="Étapes du dernier run"><li class="stage ok"><span><b>Bronze</b></span><span class="badge ok">Ingéré</span><span class="t">22:00</span></li><li class="arrow" aria-hidden="true"></li><li class="stage warn"><span><b>Silver</b></span><span class="badge warn">Rename à revoir</span><span class="t">22:01</span></li><li class="arrow" aria-hidden="true"></li><li class="stage ok"><span><b>Gold</b></span><span class="badge ok">Publié</span><span class="t">22:03</span></li></ol></td><td><code>run_20261118_2200</code><br><span class="muted">2026-11-18T22:00Z</span></td><td>v3</td><td><div class="bar warn"><div class="track" role="img" aria-label="Score 88.0 sur 100"><div class="fill" style="width:88.0%"></div></div><b>88.0</b></div></td><td><span class="badge warn">Promu, à revoir</span></td></tr></tbody></table></div>
+<nav class="pager" aria-label="Pagination"><span class="muted small">1 à 4 sur 4 sources</span><span class="actions"><button class="btn small touch" disabled>Précédent</button><button class="btn small touch" disabled>Suivant</button></span></nav>
+</section>
+<section class="grid two">
+<div class="card"><h2>Données de chargement</h2><div class="skeleton" style="width:80%"></div><div class="skeleton" style="width:60%"></div><div class="skeleton" style="width:70%"></div><p class="muted small">État de chargement (squelette).</p></div>
+<div class="card"><h2>États vide et erreur</h2><div class="empty">Aucun run sur cette période.<br><span class="small">Lancez une ingestion ou élargissez le filtre.</span></div>
+<div class="alert error" role="alert" style="margin-top:12px"><span class="txt">Impossible de joindre l'API (401). Vérifiez la clé d'API.</span><button class="btn small touch">Réessayer</button></div></div>
+</section>
+</main>
+</div>
+
+<script src="theme.js"></script>
+</body>
+</html>

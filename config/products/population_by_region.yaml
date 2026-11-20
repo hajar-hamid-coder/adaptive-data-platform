@@ -1,0 +1,25 @@
+# Data product Gold (P5-01). Owners/consommateurs fictifs (H-05), domaine H-01.
+name: population_by_region
+version: 1.0.0
+description: "Population totale résidente par région et par année (référentiel démographique)."
+sources: [hcp_population]
+columns:
+  - {name: region, type: string}
+  - {name: year, type: integer}
+  - {name: population_total, type: integer}
+owner:
+  team: "Équipe Données démographiques"
+  role: "Product owner data"
+sla:
+  freshness_hours: 168
+criticality: critical
+consumers:
+  - name: "Tableau de bord Pilotage territorial"
+    usage: "Suivi mensuel de la population par région pour l'allocation budgétaire."
+    dependency: hard
+  - name: "Service Études régionales"
+    usage: "Dénominateur des indicateurs par habitant."
+    dependency: hard
+quality:
+  min_score: 90
+retention_days: 3650

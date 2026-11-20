@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schémas - ADP</title>
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="mockup.css">
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<div class="app">
+<aside class="side">
+<a class="brand" href="index.html">ADP <span>Plateforme de données</span></a>
+<nav aria-label="Navigation principale"><ul class="nav"><li><a href="pipeline.html">Pipeline</a></li><li><a href="qualite.html">Qualité</a></li><li><a href="schemas.html" aria-current="page">Schémas</a></li><li><a href="revue-mapping.html">Revue du mapping</a></li></ul></nav>
+</aside>
+<main id="contenu">
+<header class="top">
+<div><h1>Schémas</h1><p class="muted sub">Versions et différences avec impact COMPATIBLE, REVIEW ou BLOCKING. Source : GET /schemas/{source}</p></div>
+<button class="btn" type="button" data-theme-toggle aria-pressed="false">Thème clair / sombre</button>
+</header>
+<div class="filters card"><div class="field"><label for="src">Source</label><select id="src"><option>ventes_boutiques</option></select></div>
+<div class="field"><label for="from">De</label><select id="from"><option>v3</option></select></div>
+<div class="field"><label for="to">Vers</label><select id="to"><option>v4</option></select></div></div>
+<section class="card" aria-labelledby="h-v"><header><h2 id="h-v">Versions du schéma</h2><span class="muted small">GET /schemas/ventes_boutiques</span></header>
+<div class="table-wrap" role="region" aria-label="Versions" tabindex="0"><table><thead><tr><th scope="col">Version</th><th scope="col">Semver</th><th scope="col">Empreinte</th><th scope="col" class="num">Colonnes</th><th scope="col">Créée le</th><th scope="col">Statut</th></tr></thead><tbody><tr><th scope="row">v4</th><td>1.3.0</td><td><code>9f2c41ab</code></td><td class="num">13</td><td>2026-11-18 21:55</td><td><span class="badge warn">En attente de revue</span></td></tr><tr><th scope="row">v3</th><td>1.2.0</td><td><code>c47d90e1</code></td><td class="num">12</td><td>2026-10-02 08:10</td><td><span class="badge ok">Accepté</span></td></tr><tr><th scope="row">v2</th><td>1.1.0</td><td><code>51be77d3</code></td><td class="num">11</td><td>2026-09-14 14:32</td><td><span class="badge ok">Accepté</span></td></tr><tr><th scope="row">v1</th><td>1.0.0</td><td><code>0aa31f68</code></td><td class="num">11</td><td>2026-08-30 09:00</td><td><span class="badge ok">Accepté</span></td></tr></tbody></table></div></section>
+<section class="card" aria-labelledby="h-d"><header><h2 id="h-d">Différences v3 vers v4</h2><span>Impact global : <span class="badge error">Bloquant</span></span></header>
+<p class="muted small" style="margin-bottom:12px">Le lot est arrêté tant que la suppression de <code>ancien_code</code> n'est pas arbitrée. Ajouts compatibles appliqués automatiquement.</p>
+<ul class="diff" aria-label="Changements"><li class="add"><span class="sign" aria-hidden="true">+</span><div><b><code>add_column : canal_vente</code></b><br><span class="muted small">string, nullable. Nouvelle colonne optionnelle.</span></div><span class="badge ok">Compatible</span></li><li class="ren"><span class="sign" aria-hidden="true">~</span><div><b><code>rename_column : tel_client vers telephone</code></b><br><span class="muted small">Score 0,91 (similarité 0,88, type 1,0). Proposition envoyée à la revue.</span></div><span class="badge warn">À revoir</span></li><li class="typ"><span class="sign" aria-hidden="true">≠</span><div><b><code>type_change : montant_ttc</code></b><br><span class="muted small">integer vers float. Élargissement sans perte.</span></div><span class="badge warn">À revoir</span></li><li class="del"><span class="sign" aria-hidden="true">−</span><div><b><code>drop_column : ancien_code</code></b><br><span class="muted small">Colonne utilisée par le data product ca_mensuel.</span></div><span class="badge error">Bloquant</span></li></ul>
+<p class="small muted" style="margin-top:12px">Légende : + ajout, − suppression, ~ renommage, ≠ changement de type.</p></section>
+</main>
+</div>
+
+<script src="theme.js"></script>
+</body>
+</html>

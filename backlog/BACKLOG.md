@@ -351,18 +351,18 @@
 
 ## P5 — Gold, data products, API & interface
 
-*Data products avec contrat BIA, vues DuckDB, API FastAPI, catalogue, dashboard React.* — gate utilisateur : **Non**
+*Data products avec contrat BIA, vues DuckDB, API FastAPI, catalogue, dashboard React.* — gate utilisateur : **Oui**
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 40 | P5-01 | Modèle Gold & contrats de data products | Opus | P4-07 | Non fait |
-| 41 | P5-02 | Vues & indicateurs DuckDB | Sonnet | P5-01 | Non fait |
-| 42 | P5-03 | API FastAPI | Sonnet | P5-02 | Non fait |
-| 43 | P5-04 | Catalogue de données & lignage | Sonnet | P5-03 | Non fait |
-| 44 | P5-05 | Design system & maquettes de l'UI | Sonnet | P5-03 | Non fait |
-| 45 | P5-06 | Dashboard React | Sonnet | P5-05 | Non fait |
-| 46 | P5-07 | Animations & micro-interactions | Sonnet | P5-06 | Non fait |
-| 47 | P5-08 | Tests E2E & accessibilité | Sonnet | P5-07 | Non fait |
+| 40 | P5-01 | Modèle Gold & contrats de data products | Opus | P4-07 | Validé |
+| 41 | P5-02 | Vues & indicateurs DuckDB | Sonnet | P5-01 | Validé |
+| 42 | P5-03 | API FastAPI | Sonnet | P5-02 | Validé |
+| 43 | P5-04 | Catalogue de données & lignage | Sonnet | P5-03 | Validé |
+| 44 | P5-05 | Design system & maquettes de l'UI | Sonnet | P5-03 | Validé |
+| 45 | P5-06 | Dashboard React | Sonnet | P5-05 | Validé |
+| 46 | P5-07 | Animations & micro-interactions | Sonnet | P5-06 | Validé |
+| 47 | P5-08 | Tests E2E & accessibilité | Sonnet | P5-07 | Validé |
 
 ### P5-01 — Modèle Gold & contrats de data products
 - **Objectif** : Définir les data products avec owner, SLA, criticité et consommateurs (analyse d'impact BIA).

@@ -1,0 +1,27 @@
+# Data product Gold (P5-01). Owners/consommateurs fictifs (H-05), domaine H-01.
+name: socioeconomic_summary
+version: 1.0.0
+description: "Synthèse socio-économique annuelle : population, PIB et PIB par habitant."
+depends_on: [population_by_region, gdp_indicators]
+columns:
+  - {name: country_code, type: string}
+  - {name: region, type: string}
+  - {name: year, type: integer}
+  - {name: population_total, type: integer}
+  - {name: gdp_current_usd, type: float}
+  - {name: gdp_per_capita_usd, type: float}
+owner:
+  team: "Équipe Analytics engineering"
+  role: "Product owner data"
+sla:
+  freshness_hours: 744
+criticality: high
+consumers:
+  - name: "Rapport annuel Direction de la stratégie"
+    usage: "Chiffres clés publiés dans le rapport annuel."
+    dependency: hard
+  - name: "API publique de la plateforme"
+    usage: "Exposition des indicateurs de synthèse (P5-03)."
+    dependency: soft
+quality:
+  min_score: 85

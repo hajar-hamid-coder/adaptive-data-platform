@@ -1,0 +1,4 @@
+country_code,country_name,year,indicator_code,gdp_current_usd
+MAR,Maroc,2020,NY.GDP.MKTP.CD,4000.0
+MAR,Maroc,2021,NY.GDP.MKTP.CD,9000.0
+MAR,Maroc,2022,NY.GDP.MKTP.CD,15000.0

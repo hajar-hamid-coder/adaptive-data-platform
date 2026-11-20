@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revue du mapping - ADP</title>
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="mockup.css">
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<div class="app">
+<aside class="side">
+<a class="brand" href="index.html">ADP <span>Plateforme de données</span></a>
+<nav aria-label="Navigation principale"><ul class="nav"><li><a href="pipeline.html">Pipeline</a></li><li><a href="qualite.html">Qualité</a></li><li><a href="schemas.html">Schémas</a></li><li><a href="revue-mapping.html" aria-current="page">Revue du mapping</a></li></ul></nav>
+</aside>
+<main id="contenu">
+<header class="top">
+<div><h1>Revue du mapping</h1><p class="muted sub">Propositions d'auto-mapping avec confiance, méthode et alternatives. Les actions approuver et rejeter sont simulées dans cette maquette</p></div>
+<button class="btn" type="button" data-theme-toggle aria-pressed="false">Thème clair / sombre</button>
+</header>
+<section class="grid" aria-label="Synthèse">
+<div class="card kpi"><div class="label">En attente</div><div class="value">3</div></div>
+<div class="card kpi"><div class="label">Auto-appliqués (7 j)</div><div class="value">41</div><div class="hint muted">confiance &ge; 90 %</div></div>
+<div class="card kpi"><div class="label">Délai médian de revue</div><div class="value">2 h 10</div></div>
+</section>
+<div class="alert ok" role="note"><span class="txt">Les propositions LLM sont validées par schéma et ne sont jamais exécutées sans décision humaine. Seuls les noms de colonnes et des échantillons anonymisés sont envoyés.</span></div>
+<section class="card" aria-labelledby="h-q"><header><h2 id="h-q">File de revue : stock_entrepots v2</h2><span class="muted small">Triée par confiance croissante</span></header>
+<ul class="queue"><li data-col="tel_client"><div class="meta"><div class="pair"><span>tel_client</span><span class="arrow" aria-hidden="true">&rarr;</span><span>telephone</span></div><span class="badge warn status">À revoir</span></div>
+<div class="meta"><div style="min-width:160px;flex:1"><div class="bar "><div class="track" role="img" aria-label="Confiance 91 pour cent"><div class="fill" style="width:91%"></div></div><b>91 %</b></div></div><span class="small">Méthode : <b>fuzzy + dictionnaire</b></span><span class="small muted">Origine : local</span></div>
+<p class="small">Nom proche de la colonne cible et type texte compatible.</p>
+<details><summary>Alternatives (2)</summary><ul class="alts small"><li><code>tel_fixe (0,64)</code></li><li><code>mobile (0,58)</code></li></ul></details>
+<div class="actions"><button class="btn primary small touch" type="button" data-review="ok">Approuver</button><button class="btn small touch" type="button" data-review="ko">Rejeter</button><button class="btn small touch" type="button">Choisir une autre cible</button></div></li><li data-col="cp"><div class="meta"><div class="pair"><span>cp</span><span class="arrow" aria-hidden="true">&rarr;</span><span>code_postal</span></div><span class="badge warn status">À revoir</span></div>
+<div class="meta"><div style="min-width:160px;flex:1"><div class="bar warn"><div class="track" role="img" aria-label="Confiance 78 pour cent"><div class="fill" style="width:78%"></div></div><b>78 %</b></div></div><span class="small">Méthode : <b>dictionnaire</b></span><span class="small muted">Origine : local</span></div>
+<p class="small">Abréviation connue du dictionnaire sémantique ; aucun doublon de cible.</p>
+<details><summary>Alternatives (1)</summary><ul class="alts small"><li><code>commune (0,31)</code></li></ul></details>
+<div class="actions"><button class="btn primary small touch" type="button" data-review="ok">Approuver</button><button class="btn small touch" type="button" data-review="ko">Rejeter</button><button class="btn small touch" type="button">Choisir une autre cible</button></div></li><li data-col="taux_chomage_h"><div class="meta"><div class="pair"><span>taux_chomage_h</span><span class="arrow" aria-hidden="true">&rarr;</span><span>taux_chomage</span></div><span class="badge error status">Ambigu</span></div>
+<div class="meta"><div style="min-width:160px;flex:1"><div class="bar error"><div class="track" role="img" aria-label="Confiance 62 pour cent"><div class="fill" style="width:62%"></div></div><b>62 %</b></div></div><span class="small">Méthode : <b>llm</b></span><span class="small muted">Origine : llm</span></div>
+<p class="small">Deux cibles plausibles (h et f) : la similarité lexicale ne les départage pas.</p>
+<details><summary>Alternatives (2)</summary><ul class="alts small"><li><code>taux_chomage_f (0,61)</code></li><li><code>taux_chomage_total (0,55)</code></li></ul></details>
+<div class="actions"><button class="btn primary small touch" type="button" data-review="ok">Approuver</button><button class="btn small touch" type="button" data-review="ko">Rejeter</button><button class="btn small touch" type="button">Choisir une autre cible</button></div></li></ul></section>
+</main>
+</div>
+<div class="toast-zone" id="toasts" hidden><div class="alert ok" role="status"><span class="txt"></span></div></div>
+<script src="theme.js"></script>
+</body>
+</html>
