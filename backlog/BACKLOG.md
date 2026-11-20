@@ -355,14 +355,14 @@
 
 | Ordre | ID | Tâche | Modèle | Dépend. | Statut |
 |---|---|---|---|---|---|
-| 40 | P5-01 | Modèle Gold & contrats de data products | Opus | P4-07 | Non fait |
-| 41 | P5-02 | Vues & indicateurs DuckDB | Sonnet | P5-01 | Non fait |
-| 42 | P5-03 | API FastAPI | Sonnet | P5-02 | Non fait |
-| 43 | P5-04 | Catalogue de données & lignage | Sonnet | P5-03 | Non fait |
-| 44 | P5-05 | Design system & maquettes de l'UI | Sonnet | P5-03 | Non fait |
-| 45 | P5-06 | Dashboard React | Sonnet | P5-05 | Non fait |
-| 46 | P5-07 | Animations & micro-interactions | Sonnet | P5-06 | Non fait |
-| 47 | P5-08 | Tests E2E & accessibilité | Sonnet | P5-07 | Non fait |
+| 40 | P5-01 | Modèle Gold & contrats de data products | Opus | P4-07 | À valider |
+| 41 | P5-02 | Vues & indicateurs DuckDB | Sonnet | P5-01 | À valider |
+| 42 | P5-03 | API FastAPI | Sonnet | P5-02 | À valider |
+| 43 | P5-04 | Catalogue de données & lignage | Sonnet | P5-03 | À valider |
+| 44 | P5-05 | Design system & maquettes de l'UI | Sonnet | P5-03 | À valider |
+| 45 | P5-06 | Dashboard React | Sonnet | P5-05 | À valider |
+| 46 | P5-07 | Animations & micro-interactions | Sonnet | P5-06 | À valider |
+| 47 | P5-08 | Tests E2E & accessibilité | Sonnet | P5-07 | À valider |
 
 ### P5-01 — Modèle Gold & contrats de data products
 - **Objectif** : Définir les data products avec owner, SLA, criticité et consommateurs (analyse d'impact BIA).
