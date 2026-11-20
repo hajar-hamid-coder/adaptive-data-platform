@@ -29,6 +29,10 @@ La clé de démo est tirée au hasard à chaque exécution du script, affichée 
 - L'API ne liste pas les sources ni ne persiste de journal de run : les sources sont déduites de `/runs`, et les étapes Bronze/Silver/Gold ainsi que le statut (promu / quarantaine partielle) sont déduits du score du dernier run. Une source dont le seul lot est bloqué par la porte de schéma n'apparaît pas tant qu'elle n'a pas de score.
 - Catalogue et lignage (`/catalog`) : types prêts (`api/types.ts`), écran prévu en P5-07 (animations comprises).
 
+## Tests E2E et accessibilité (P5-08)
+
+`npm run e2e` (Playwright, Chromium ; première fois : `npx playwright install chromium`). Le `globalSetup` (`e2e/global-setup.ts`) construit les données de démo synthétiques (`data/demo-store`, idempotent), tire une clé d'API aléatoire en mémoire (jamais écrite ni loguée), lance `adp api serve` et Vite sur des ports libres, puis les arrête. Parcours : `e2e/journeys.e2e.ts` ; scans axe-core (WCAG A/AA + bonnes pratiques, 4 écrans x clair/sombre x bureau/mobile, échec si impact serious/critical) : `e2e/a11y.e2e.ts`. Rapport HTML : `playwright-report/` (git-ignoré). Job CI : `e2e`.
+
 ## Commandes
 
-`npm run dev` · `npm run build` (typecheck puis build) · `npm test` (Vitest + Testing Library, `fetch` simulé) · `npm run typecheck`
+`npm run dev` · `npm run build` (typecheck puis build) · `npm run e2e` · `npm test` (Vitest + Testing Library, `fetch` simulé) · `npm run typecheck`
