@@ -6,6 +6,7 @@ from dagster import DagsterInstance, SkipReason, build_sensor_context, materiali
 from adp.bronze.store import LocalStore
 from adp.orchestration.definitions import build_definitions
 from adp.orchestration.ingestion import BronzeConfig, make_bronze_assets, make_landing_sensor
+from adp.orchestration.schema_gate import SchemaRegistryResource
 from adp.sources.spec import SourceSpec
 
 DATA = Path(__file__).parents[1] / "data"
@@ -20,7 +21,8 @@ def _spec(name: str = "pop", uri: str | None = None, type_: str = "file") -> Sou
 
 def _run(spec: SourceSpec, store: LocalStore, **cfg: str):
     return materialize(
-        make_bronze_assets({spec.name: spec}), resources={"store": store},
+        make_bronze_assets({spec.name: spec}),
+        resources={"store": store, "schema_registry": SchemaRegistryResource(url="sqlite://")},
         run_config={"ops": {f"bronze_{spec.name}": {"config": cfg}}} if cfg else None,
     )  # fmt: skip
 

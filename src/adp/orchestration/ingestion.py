@@ -31,6 +31,7 @@ from dagster import (
 from adp.bronze.deadletter import ingest_with_deadletter
 from adp.bronze.store import LocalStore, ObjectStore, S3Store
 from adp.logging import bind_run_id, get_logger
+from adp.observability.dagster import audited_asset
 from adp.sources.spec import SourceSpec
 
 log = get_logger(__name__)
@@ -58,7 +59,9 @@ def build_store() -> ObjectStore:
 def make_bronze_asset(spec: SourceSpec) -> AssetsDefinition:
     """Build `bronze_<source>` for a file source."""
 
-    @asset(name=f"bronze_{spec.name}", group_name="bronze", required_resource_keys={"store"})
+    @asset(name=f"bronze_{spec.name}", group_name="bronze",
+           required_resource_keys={"store", "schema_registry"})  # fmt: skip
+    @audited_asset("bronze", spec.name)
     def _bronze(context: OpExecutionContext, config: BronzeConfig) -> MaterializeResult[None]:
         run_id = bind_run_id(context.run_id)
         s = context.resources.store

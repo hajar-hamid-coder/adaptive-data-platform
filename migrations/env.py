@@ -1,8 +1,8 @@
 """Alembic environment for the ADP metadata database (online mode only).
 
-Only the tables of `metadata` (schema registry, mapping review P3-04, quality score P4-03) are
-managed: other tables of the same database (e.g. `adp_watermarks`, created on demand by the
-SQL connector) are ignored by autogenerate.
+Only the tables of `metadata` (schema registry, mapping review P3-04, quality score P4-03,
+run audit P6-01) are managed: other tables of the same database (e.g. `adp_watermarks`,
+created on demand by the SQL connector) are ignored by autogenerate.
 """
 
 from logging.config import fileConfig
@@ -11,6 +11,7 @@ from alembic import context
 from sqlalchemy import create_engine
 
 import adp.mapping.decision  # noqa: F401 - registers review tables on `metadata`
+import adp.observability.audit  # noqa: F401 - registers run_audit/step_audit on `metadata`
 import adp.quality.score  # noqa: F401 - registers quality_score on `metadata`
 from adp.config import get_settings
 from adp.schema.registry import metadata

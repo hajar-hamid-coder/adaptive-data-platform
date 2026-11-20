@@ -52,3 +52,7 @@ class ContractError(ConfigError):
 
 class GoldError(AdpError):
     """Gold build failure (missing promoted batch, bad SQL or output not matching the contract)."""
+
+
+class AuditError(AdpError):
+    """Run/step audit failure (invalid input or conflicting rewrite; no data value inside)."""

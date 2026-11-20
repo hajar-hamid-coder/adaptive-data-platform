@@ -58,6 +58,7 @@ from adp.bronze.writer import TECH_COLUMNS
 from adp.connectors.files import RawTable
 from adp.errors import SchemaError
 from adp.logging import bind_run_id, get_logger
+from adp.observability.dagster import audited_asset
 from adp.schema.events import EventBus
 from adp.schema.policy import ChangeImpact, EvolutionAction, EvolutionPolicy, load_policy
 from adp.schema.profile import SchemaFingerprint, profile_table
@@ -91,6 +92,7 @@ class GateResult(BaseModel):
     semver: str
     overall_impact: ChangeImpact
     overall_action: EvolutionAction
+    n_changes: int = 0  # changes of a NEWLY registered schema (0 on a known one)
     reasons: list[str]
     report_path: str | None
 
@@ -215,7 +217,8 @@ def run_schema_gate(
         cause = "blocking_change" if action is EvolutionAction.BLOCK else "review_required"
     result = GateResult(
         status="blocked" if blocked else "passed", cause=cause, version=version, semver=semver,
-        overall_impact=_IMPACT[action], overall_action=action, reasons=reasons,
+        overall_impact=_IMPACT[action], overall_action=action,
+        n_changes=len(found) if report is not None else 0, reasons=reasons,
         report_path=key if store.exists(key) else None,
     )  # fmt: skip
     log.info(
@@ -250,6 +253,7 @@ def make_schema_check_asset(spec: SourceSpec) -> AssetsDefinition:
         name=f"schema_check_{spec.name}", group_name="schema", deps=[bronze],
         required_resource_keys={"store", "schema_registry"},
     )  # fmt: skip
+    @audited_asset("schema_check", spec.name)
     def _check(context: OpExecutionContext) -> MaterializeResult[None]:
         run_id = bind_run_id(context.run_id)
         event = context.instance.get_latest_materialization_event(bronze)
@@ -275,6 +279,7 @@ def make_schema_check_asset(spec: SourceSpec) -> AssetsDefinition:
             "semver": MetadataValue.text(res.semver),
             "overall_impact": res.overall_impact.value,
             "overall_action": res.overall_action.value,
+            "n_changes": res.n_changes,
             "report_path": MetadataValue.text(res.report_path or ""),
             "reasons": MetadataValue.text("\n".join(res.reasons)),
             "parquet_path": MetadataValue.text(path),  # the batch checked (read by Silver)

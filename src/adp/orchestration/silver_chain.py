@@ -62,6 +62,7 @@ from adp.mapping.learn import DEFAULT_LEARNED_PATH, load_dictionary_with_learned
 from adp.mapping.llm import LLMMapper, build_mapper
 from adp.mapping.rules import map_columns
 from adp.mapping.transform import load_field_transforms
+from adp.observability.dagster import audited_asset
 from adp.orchestration.schema_gate import read_bronze_table
 from adp.schema.profile import ColumnProfile, profile_table
 from adp.silver.clean import clean_table, load_cleaning
@@ -241,6 +242,7 @@ def make_silver_asset(
         name=f"silver_{spec.name}", group_name="silver", deps=[check],
         required_resource_keys={"store", "silver_store", "schema_registry"},
     )  # fmt: skip
+    @audited_asset("silver", spec.name)
     def _silver(context: OpExecutionContext) -> MaterializeResult[None]:
         run_id = bind_run_id(context.run_id)
         event = context.instance.get_latest_materialization_event(check)

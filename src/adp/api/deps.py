@@ -15,6 +15,7 @@ from adp.bronze.store import ObjectStore
 from adp.catalog.model import Catalog
 from adp.config import Settings
 from adp.gold.contract import DataProduct
+from adp.observability.audit import AuditStore
 from adp.quality.quarantine import QuarantineStore
 from adp.quality.score import QualityScoreStore
 from adp.schema.registry import SchemaRegistry
@@ -36,6 +37,7 @@ class Deps:
     quarantine: QuarantineStore
     reports_dir: Path
     catalog: Callable[[], Catalog] | None = None  # None: contracts only (partial lineage)
+    audit: AuditStore | None = None  # None: no audit journal (empty /audit, bare /metrics)
 
 
 def get_deps(request: Request) -> Deps:
@@ -79,6 +81,15 @@ def require_key(request: Request, key: Annotated[str | None, Depends(_header)]) 
             ok |= hmac.compare_digest(presented, known)
     if not ok:
         raise HTTPException(401, "Unauthorized", headers={"WWW-Authenticate": "ApiKey"})
+
+
+def require_scrape_key(request: Request, key: Annotated[str | None, Depends(_header)]) -> None:
+    """`/metrics` auth: same keys as the API, via `X-API-Key` or `Authorization: Bearer <key>`
+    (what a Prometheus `authorization` scrape block sends)."""
+    auth = request.headers.get("authorization", "")
+    if not key and auth[:7].lower() == "bearer ":
+        key = auth[7:].strip()
+    require_key(request, key)
 
 
 class Page(BaseModel):

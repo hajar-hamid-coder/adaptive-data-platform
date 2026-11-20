@@ -22,6 +22,7 @@ from dagster import (
 from adp.bronze.store import LocalStore, ObjectStore, S3Store
 from adp.errors import AdpError
 from adp.logging import bind_run_id
+from adp.observability.dagster import audited_asset
 from adp.orchestration.promotion_gate import promote_batch
 from adp.orchestration.silver_chain import load_run_dictionary
 from adp.sources.spec import SourceSpec
@@ -53,6 +54,7 @@ def make_promote_asset(spec: SourceSpec) -> AssetsDefinition:
         required_resource_keys={"silver_store", "gold_store", "quarantine_store",
                                 "schema_registry"},
     )  # fmt: skip
+    @audited_asset("promote", spec.name)
     def _promote(context: OpExecutionContext) -> MaterializeResult[None]:
         run_id = bind_run_id(context.run_id)
         event = context.instance.get_latest_materialization_event(silver)
