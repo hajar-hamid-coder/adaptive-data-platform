@@ -297,6 +297,12 @@ class AuditStore:
             stmt = stmt.where(t.c.source_name == _check_source(source))
         return self._rows(stmt.limit(limit).offset(offset))
 
+    def run(self, run_id: str, source: str) -> dict[str, Any] | None:
+        """One run row, or None (read-only)."""
+        t = run_audit
+        rows = self._rows(select(t).where(t.c.run_id == run_id, t.c.source_name == source))
+        return rows[0] if rows else None
+
     def steps(self, run_id: str, source: str | None = None) -> list[dict[str, Any]]:
         """Steps of a run in chain order (read-only)."""
         t = step_audit

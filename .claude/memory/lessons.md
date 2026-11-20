@@ -15,3 +15,4 @@ Format : `YYYY-MM-DD — piège — correction`. (Vide au démarrage.)
 - Un test de bout en bout a révélé un bug que les tests unitaires de P3-04/P3-08 ne voyaient pas (auto_apply système écrasant l'approbation humaine comme « dernière décision ») : câbler tôt, tester la boucle complète.
 - Test hypothesis dérandomisé ≠ garanti : le contre-exemple n'apparaît que selon l'ordre/volume de la suite. Quand un test de propriété échoue seul en suite complète, rejouer le contre-exemple isolément et corriger la cause (ici difflib.ratio asymétrique), jamais le marquer flaky.
 - Intégration : tester un consommateur contre ce qu'écrit réellement le producteur (API vs promote_batch : disposition des rapports différente, tests verts car fixture à plat).
+- Un audit « non invasif » qui avale ses erreurs peut perdre silencieusement des données : tester le chemin nominal avec les vraies valeurs produites en amont (raisons de gate), pas seulement des codes propres.

@@ -11,6 +11,7 @@ from alembic.migration import MigrationContext
 from sqlalchemy import Engine, create_engine, inspect, text
 
 import adp.mapping.decision  # noqa: F401 - review tables share the registry `metadata`
+import adp.observability.alerts  # noqa: F401 - alert_state shares the registry `metadata`
 import adp.observability.audit  # noqa: F401 - audit tables share the registry `metadata`
 import adp.quality.score  # noqa: F401 - quality_score shares the registry `metadata`
 from adp.connectors.files import RawTable
@@ -79,7 +80,7 @@ def test_upgrade_postgres(pg_engine: Engine) -> None:
     tables = set(inspect(pg_engine).get_table_names())
     assert tables == {
         "schema_version", "schema_change", "review_queue", "mapping_decision_log",
-        "quality_score", "run_audit", "step_audit", "alembic_version",
+        "quality_score", "run_audit", "step_audit", "alert_state", "alembic_version",
     }  # fmt: skip
     _assert_no_drift(pg_engine)
     reg = SchemaRegistry(pg_engine)

@@ -160,6 +160,29 @@ def _catalog_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def _alerts_test(args: argparse.Namespace) -> int:
+    from adp.observability.alerts import (
+        discord_payload,
+        load_alert_policy,
+        sample_alert,
+        sender_from_env,
+        slack_payload,
+    )
+
+    alert = sample_alert()
+    if args.dry_run:  # never touches the network nor the webhook secret
+        build = discord_payload if args.kind == "discord" else slack_payload
+        print(json.dumps(build(alert), ensure_ascii=False, indent=2))
+        return 0
+    sender = sender_from_env(load_alert_policy(args.config))
+    if sender is None:
+        print("Erreur : ADP_ALERT_WEBHOOK_URL absente ou refusée.", file=sys.stderr)
+        return 2
+    ok = sender.send(alert)
+    print("Alerte de test envoyée." if ok else "Échec d'envoi (voir les logs).")
+    return 0 if ok else 1
+
+
 def _api_serve(args: argparse.Namespace) -> int:
     import uvicorn
 
@@ -250,6 +273,14 @@ def main(argv: list[str] | None = None) -> int:
     ce = cat.add_parser("export", help="exporter le lignage (OpenLineage-lite JSON)")
     ce.add_argument("--output", type=Path, help="fichier de sortie (défaut : stdout)")
     ce.set_defaults(func=_catalog_export)
+    alerts = sub.add_parser("alerts", help="alerting webhook").add_subparsers(
+        dest="cmd", required=True
+    )
+    at = alerts.add_parser("test", help="envoyer (ou afficher) une alerte de test")
+    at.add_argument("--dry-run", action="store_true", help="afficher le payload sans envoyer")
+    at.add_argument("--kind", choices=["slack", "discord"], default="slack")
+    at.add_argument("--config", type=Path, default=Path("config/alerts.yaml"))
+    at.set_defaults(func=_alerts_test)
     api = sub.add_parser("api", help="API HTTP en lecture seule").add_subparsers(
         dest="cmd", required=True
     )

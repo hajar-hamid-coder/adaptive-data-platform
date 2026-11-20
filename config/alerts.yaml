@@ -1,0 +1,17 @@
+# Politique d'alerte (P6-02). AUCUN secret ici : l'URL du webhook vient UNIQUEMENT de la
+# variable d'environnement ADP_ALERT_WEBHOOK_URL (alerting désactivé si absente).
+dedup_window_minutes: 60      # fenêtre anti-répétition (= cooldown) par clé de dédup
+allowed_hosts:                # allowlist anti-SSRF / exfiltration
+  - hooks.slack.com
+  - discord.com
+  - discordapp.com
+quiet_hours: null             # ex. {start: "22:00", end: "07:00", min_severity: critical} (UTC)
+thresholds:
+  run_failed: {enabled: true, severity: critical}
+  schema_blocked: {enabled: true, severity: warning}
+  quarantine_rate: {enabled: true, severity: warning, max_ratio: 0.05}
+  quality_score_below: {enabled: true, severity: warning, min_score: 80}
+  sla_freshness: {enabled: true, severity: warning, max_age_hours: 48}
+rca:
+  use_llm: false              # opt-in : nécessite ANTHROPIC_API_KEY ; sinon règles locales
+  max_context_chars: 4000

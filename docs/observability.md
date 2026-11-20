@@ -49,3 +49,29 @@ scrape_configs:
     static_configs:
       - targets: ["adp-api:8000"]
 ```
+
+## Alerting et analyse de cause racine (P6-02)
+
+`src/adp/observability/alerts.py` et `rca.py`. Après chaque étape auditée (`@audited_asset`),
+`notify_run` évalue le run : **no-op tant que `ADP_ALERT_WEBHOOK_URL` n'est pas défini**, et un
+problème d'alerte ne change jamais l'issue du run.
+
+- **Seuils** (`config/alerts.yaml`) : `run_failed`, `schema_blocked`, `quarantine_rate`,
+  `quality_score_below`, `sla_freshness` (`freshness_alerts`, à appeler par une planification).
+- **Anti-bruit** : clé de dédup = hash (source, type, motif de codes) ; table `alert_state`
+  (Alembic `0006`) ; même alerte supprimée pendant `dedup_window_minutes` (« vu N fois » au
+  renvoi) ; un même run réévalué ne compte pas ; regroupement en un message par run ; heures
+  calmes (UTC) ; message de rétablissement quand la source repasse au vert. Décision atomique
+  (INSERT unique ou UPDATE conditionnel) : sûre en concurrence. Livraison « au plus une fois ».
+- **Webhook** : URL uniquement par variable d'environnement (secret, jamais loguée) ; https,
+  port par défaut, sans identifiants, hôte dans l'allowlist (`hooks.slack.com`, `discord.com`,
+  `discordapp.com`) et chemin attendu, sinon refus (anti-SSRF) ; pas de redirection suivie ;
+  timeout 5 s, 3 tentatives max (erreurs réseau, 429, 5xx).
+- **Assainissement** : mentions neutralisées (`@everyone`, `@here`, `<@id>`), liens retirés,
+  balisage supprimé, longueur bornée ; Slack en `plain_text`, Discord `allowed_mentions` vide.
+- **RCA** : contexte minimal (étapes, codes, type d'exception, changements de schéma réels du
+  registre : noms de colonnes et jetons de type/format uniquement), hypothèses classées citant
+  des références du contexte (`schema:drop_column:taux_activite`). Par défaut, règles locales
+  déterministes ; LLM en option (`rca.use_llm`, clé `ANTHROPIC_API_KEY`) avec garde de
+  confidentialité, budget, cache ; une hypothèse LLM sans preuve réelle est rejetée.
+- **Test** : `uv run adp alerts test --dry-run [--kind discord]` affiche le payload sans envoyer.

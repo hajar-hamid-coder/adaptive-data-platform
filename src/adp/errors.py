@@ -56,3 +56,7 @@ class GoldError(AdpError):
 
 class AuditError(AdpError):
     """Run/step audit failure (invalid input or conflicting rewrite; no data value inside)."""
+
+
+class AlertError(AdpError):
+    """Alert state or delivery failure (messages never contain a webhook URL or a data value)."""

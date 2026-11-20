@@ -27,3 +27,9 @@ def pg_engine() -> Iterator[Engine]:
     with admin.connect() as c:
         c.execute(text(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)'))
     admin.dispose()
+
+
+@pytest.fixture(autouse=True)
+def _no_alert_webhook(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The test suite never sends alerts to a real webhook configured in the shell."""
+    monkeypatch.delenv("ADP_ALERT_WEBHOOK_URL", raising=False)

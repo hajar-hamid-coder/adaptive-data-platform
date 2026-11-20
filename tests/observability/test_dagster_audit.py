@@ -91,3 +91,18 @@ def test_audit_outage_does_not_fail_data_run(
 ) -> None:
     monkeypatch.setattr(AuditStore, "record_step", lambda *a, **k: 1 / 0)
     assert _run(tmp_path, monkeypatch, DRIFT / "v1/population.csv").success
+
+
+def test_gate_reasons_with_thresholds_are_stored_as_safe_codes() -> None:
+    """`score=60<80` / `quarantine:failed_rate=0.2>=0.2` used to fail the audit charset check."""
+    from adp.observability.audit import StepOutcome
+    from adp.observability.dagster import fill_outcome
+
+    out = StepOutcome(status="quarantined")
+    fill_outcome(
+        "promote",
+        {"status": "quarantined", "reasons": ["score=60<80", "score:n/a", "x" * 200]},
+        out,
+    )
+    assert out.reasons[0] == "score_60_80" and out.reasons[1] == "score:n_a"
+    assert len(out.reasons[2]) == 64
